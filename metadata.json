@@ -1,0 +1,8 @@
+{
+  "name": "Tourist Web",
+  "description": "Discover incredible travel destinations, plan day-by-day itineraries, explore curated travel guides, and book unforgettable tourist experiences around the world.",
+  "permissions": [],
+  "capabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
