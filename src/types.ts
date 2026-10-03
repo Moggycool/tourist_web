@@ -1,90 +1,98 @@
-export type CategoryType = 
-  | 'all'
-  | 'nature'
-  | 'heritage'
-  | 'city'
-  | 'beach'
-  | 'adventure'
-  | 'culinary';
+export type Currency = 'ETB' | 'USD';
 
-export interface Destination {
+export interface Room {
+  id: string;
+  name: string;
+  category: 'standard' | 'deluxe' | 'suite' | 'family';
+  tagline: string;
+  priceETB: number;
+  priceUSD: number;
+  capacity: string;
+  bedType: string;
+  sizeSqMeters: number;
+  image: string;
+  gallery: string[];
+  description: string;
+  amenities: string[];
+  features: string[];
+  available: boolean;
+  statusText?: string; // e.g. "Available", "Popular", "High Demand"
+}
+
+export interface TourPackage {
   id: string;
   title: string;
   tagline: string;
-  country: string;
-  continent: 'Europe' | 'Asia' | 'Americas' | 'Africa' | 'Oceania';
-  category: 'nature' | 'heritage' | 'city' | 'beach' | 'adventure' | 'culinary';
-  rating: number;
-  reviewsCount: number;
-  priceLevel: '$' | '$$' | '$$$' | '$$$$';
-  approxDailyCostUsd: number;
   duration: string;
-  bestSeason: string;
-  averageTemp: string;
-  heroImage: string;
-  gallery: string[];
+  priceETB: number;
+  priceUSD: number;
+  image: string;
   description: string;
-  highlights: { title: string; desc: string }[];
-  localFood: { name: string; desc: string }[];
-  travelTips: string[];
-  coordinates: { x: number; y: number }; // percentage on 0-100 world map
-  featured?: boolean;
-  tags: string[];
-}
-
-export interface TourExperience {
-  id: string;
-  destinationId: string;
-  destinationTitle: string;
-  country: string;
-  title: string;
-  category: string;
-  duration: string;
-  priceUsd: number;
-  rating: number;
-  reviewsCount: number;
-  image: string;
-  groupSize: string;
-  included: string[];
   highlights: string[];
+  included: string[];
+  schedule: string;
 }
 
-export interface ItineraryItem {
+export interface MenuItem {
   id: string;
-  day: number;
-  time: string;
-  activity: string;
-  location: string;
-  cost: number;
-  notes?: string;
+  name: string;
+  amharicName?: string;
+  category: 'traditional' | 'international' | 'beverages' | 'breakfast';
+  priceETB: number;
+  priceUSD: number;
+  description: string;
+  isSpecialty?: boolean;
 }
 
-export interface TravelGuide {
+export interface ConferenceHall {
   id: string;
-  title: string;
-  category: string;
-  readTime: string;
-  author: {
-    name: string;
-    avatar: string;
-    role: string;
-  };
-  publishedDate: string;
+  name: string;
+  capacity: number;
   image: string;
-  excerpt: string;
-  paragraphs: string[];
-  tips: string[];
+  description: string;
+  suitableFor: string[];
+  amenities: string[];
 }
 
-export interface BookingDetails {
-  experienceId: string;
-  experienceTitle: string;
-  destinationTitle: string;
-  guestCount: number;
-  date: string;
-  contactName: string;
-  contactEmail: string;
-  specialRequests?: string;
-  totalPriceUsd: number;
+export interface HotelInfo {
+  name: string;
+  tagline: string;
+  description: string;
+  location: string;
+  city: string;
+  region: string;
+  country: string;
+  addressLine: string;
+  phonePrimary: string;
+  phoneSecondary: string;
+  email: string;
+  receptionHours: string;
+  checkInTime: string;
+  checkOutTime: string;
+  airportPickupAvailable: boolean;
+  airportName: string;
+  heroImage: string;
+  restaurantImage: string;
+}
+
+export interface RoomBooking {
+  id: string;
   bookingRef: string;
+  roomId: string;
+  roomName: string;
+  guestName: string;
+  guestEmail: string;
+  guestPhone: string;
+  checkInDate: string;
+  checkOutDate: string;
+  adultsCount: number;
+  childrenCount: number;
+  totalNights: number;
+  totalPriceETB: number;
+  totalPriceUSD: number;
+  specialRequests?: string;
+  airportPickupRequested: boolean;
+  flightDetails?: string;
+  status: 'Confirmed' | 'Pending' | 'Checked-in' | 'Cancelled';
+  createdAt: string;
 }

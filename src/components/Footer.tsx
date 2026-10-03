@@ -1,106 +1,123 @@
 import React from 'react';
-import { Compass, Globe, Heart, Shield, Sparkles } from 'lucide-react';
+import { MapPin, Phone, Mail, Clock, Lock } from 'lucide-react';
+import { useHotel } from '../context/HotelContext';
 
 interface FooterProps {
-  onSelectTab: (tab: string) => void;
+  onNavClick: (sec: string) => void;
 }
 
-export const Footer: React.FC<FooterProps> = ({ onSelectTab }) => {
+export const Footer: React.FC<FooterProps> = ({ onNavClick }) => {
+  const { hotelInfo, setIsAdminOpen } = useHotel();
+
   return (
-    <footer className="bg-slate-900 text-slate-400 mt-20 border-t border-slate-800">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 space-y-12">
+    <footer className="bg-stone-950 text-stone-400 border-t border-stone-800 text-xs">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 space-y-12">
         
-        {/* Main Grid */}
+        {/* Main 4-Column Grid */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           
-          {/* Brand info */}
+          {/* Brand Info */}
           <div className="space-y-4 md:col-span-1">
-            <div className="flex items-center gap-2.5 text-white">
-              <div className="w-8 h-8 rounded-lg bg-sky-600 flex items-center justify-center text-white">
-                <Compass className="w-5 h-5" />
+            <div>
+              <h3 className="text-xl font-black text-white tracking-tight">{hotelInfo.name}</h3>
+              <p className="text-[11px] text-amber-400 uppercase tracking-widest font-semibold mt-0.5">
+                Arba Minch · Ethiopia
+              </p>
+            </div>
+            <p className="text-xs text-stone-400 leading-relaxed">
+              Your premier lodge in the Great Rift Valley. Gateway to Lake Chamo crocodile boat safaris, Nechisar National Park, and Dorze cultural villages.
+            </p>
+            <div className="pt-2 text-[11px] text-stone-500">
+              Reception open {hotelInfo.receptionHours}
+            </div>
+          </div>
+
+          {/* Quick Links */}
+          <div className="space-y-3">
+            <h4 className="text-xs font-bold text-white uppercase tracking-wider">Hotel Navigation</h4>
+            <ul className="space-y-2">
+              <li>
+                <button onClick={() => onNavClick('rooms')} className="hover:text-white transition-colors">
+                  Rooms & Executive Suites
+                </button>
+              </li>
+              <li>
+                <button onClick={() => onNavClick('dining')} className="hover:text-white transition-colors">
+                  Restaurant & Buna Ceremony
+                </button>
+              </li>
+              <li>
+                <button onClick={() => onNavClick('tours')} className="hover:text-white transition-colors">
+                  Lake Chamo Boat Safaris
+                </button>
+              </li>
+              <li>
+                <button onClick={() => onNavClick('meetings')} className="hover:text-white transition-colors">
+                  Conference & Banquet Halls
+                </button>
+              </li>
+              <li>
+                <button onClick={() => onNavClick('about')} className="hover:text-white transition-colors">
+                  About Arba Minch & Forty Springs
+                </button>
+              </li>
+            </ul>
+          </div>
+
+          {/* Local Attractions */}
+          <div className="space-y-3">
+            <h4 className="text-xs font-bold text-white uppercase tracking-wider">Arba Minch Highlights</h4>
+            <ul className="space-y-2 text-stone-400">
+              <li>Lake Chamo Crocodile Market</li>
+              <li>Lake Abaya Red Waters</li>
+              <li>Nechisar Zebra Plains</li>
+              <li>Dorze Bamboo Elephant Huts</li>
+              <li>The Forty Natural Springs</li>
+              <li>Lower Omo Valley Expeditions</li>
+            </ul>
+          </div>
+
+          {/* Direct Contacts */}
+          <div className="space-y-3">
+            <h4 className="text-xs font-bold text-white uppercase tracking-wider">Contact & Inquiries</h4>
+            <div className="space-y-2.5">
+              <div className="flex items-start gap-2">
+                <MapPin className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+                <span>{hotelInfo.addressLine}</span>
               </div>
-              <span className="text-lg font-bold tracking-tight">Tourist Web</span>
+              <div className="flex items-center gap-2">
+                <Phone className="w-4 h-4 text-amber-500 shrink-0" />
+                <span>{hotelInfo.phonePrimary}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Mail className="w-4 h-4 text-amber-500 shrink-0" />
+                <span className="truncate">{hotelInfo.email}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Clock className="w-4 h-4 text-amber-500 shrink-0" />
+                <span>Check-in: {hotelInfo.checkInTime} / Out: {hotelInfo.checkOutTime}</span>
+              </div>
             </div>
-            <p className="text-xs text-slate-400 leading-relaxed">
-              Your comprehensive portal for world exploration, hand-crafted day-by-day itineraries, certified local experiences, and responsible travel inspiration.
-            </p>
-            <div className="flex items-center gap-3 text-xs text-slate-500">
-              <span className="flex items-center gap-1">
-                <Shield className="w-3.5 h-3.5 text-sky-400" />
-                <span>Verified Guides</span>
-              </span>
-              <span>•</span>
-              <span className="flex items-center gap-1">
-                <Globe className="w-3.5 h-3.5 text-teal-400" />
-                <span>Global Reach</span>
-              </span>
-            </div>
-          </div>
-
-          {/* Nav Links */}
-          <div className="space-y-3">
-            <h4 className="text-xs font-bold text-white uppercase tracking-wider">Explore Tourist Web</h4>
-            <ul className="space-y-2 text-xs">
-              <li>
-                <button onClick={() => onSelectTab('explore')} className="hover:text-white transition-colors">
-                  Top Destinations
-                </button>
-              </li>
-              <li>
-                <button onClick={() => onSelectTab('map')} className="hover:text-white transition-colors">
-                  Interactive Geographic Map
-                </button>
-              </li>
-              <li>
-                <button onClick={() => onSelectTab('experiences')} className="hover:text-white transition-colors">
-                  Tours & Guided Experiences
-                </button>
-              </li>
-              <li>
-                <button onClick={() => onSelectTab('itinerary')} className="hover:text-white transition-colors">
-                  Day-by-Day Itinerary Planner
-                </button>
-              </li>
-              <li>
-                <button onClick={() => onSelectTab('guides')} className="hover:text-white transition-colors">
-                  Curated Travel Guides
-                </button>
-              </li>
-            </ul>
-          </div>
-
-          {/* Continents */}
-          <div className="space-y-3">
-            <h4 className="text-xs font-bold text-white uppercase tracking-wider">Featured Continents</h4>
-            <ul className="space-y-2 text-xs">
-              <li className="hover:text-white transition-colors cursor-pointer" onClick={() => onSelectTab('explore')}>Europe (Amalfi, Santorini, Alps)</li>
-              <li className="hover:text-white transition-colors cursor-pointer" onClick={() => onSelectTab('explore')}>Asia (Kyoto, Tokyo, Kyoto Gardens)</li>
-              <li className="hover:text-white transition-colors cursor-pointer" onClick={() => onSelectTab('explore')}>Americas (Banff Rockies, Machu Picchu)</li>
-              <li className="hover:text-white transition-colors cursor-pointer" onClick={() => onSelectTab('explore')}>Africa (Cape Town, Marrakesh Medina)</li>
-            </ul>
-          </div>
-
-          {/* Travel Tip of the Day */}
-          <div className="space-y-3 bg-slate-800/60 p-4 rounded-2xl border border-slate-700/60">
-            <div className="flex items-center gap-1.5 text-amber-400 text-xs font-bold uppercase tracking-wider">
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>Traveler Pro Tip</span>
-            </div>
-            <p className="text-xs text-slate-300 leading-relaxed italic">
-              "Always arrive at major landmark temples and mountain viewpoints 30 minutes before sunrise for golden light photography and crowd-free wonder."
-            </p>
-            <span className="text-[10px] text-slate-400 block">— Tourist Web Editorial Team</span>
           </div>
 
         </div>
 
-        {/* Bottom Bar */}
-        <div className="pt-8 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
-          <p>© {new Date().getFullYear()} Tourist Web. Built for world travelers & global wanderers.</p>
-          <div className="flex items-center gap-4 text-xs">
+        {/* Bottom Line */}
+        <div className="pt-8 border-t border-stone-800/80 flex flex-col sm:flex-row items-center justify-between gap-4 text-stone-500 text-[11px]">
+          <p>© {new Date().getFullYear()} {hotelInfo.name}, Arba Minch, Ethiopia. All rights reserved.</p>
+          
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => setIsAdminOpen(true)}
+              className="text-stone-400 hover:text-amber-400 flex items-center gap-1 font-semibold transition-colors"
+            >
+              <Lock className="w-3 h-3 text-amber-500" />
+              <span>Admin Management Portal</span>
+            </button>
+            <span>·</span>
             <span>Privacy Policy</span>
-            <span>Terms of Service</span>
-            <span>Sustainable Travel Charter</span>
+            <span>·</span>
+            <span>Terms of Booking</span>
           </div>
         </div>
 
