@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { HotelInfo, Room, TourPackage, MenuItem, ConferenceHall, RoomBooking, Currency } from '../types';
-import { INITIAL_HOTEL_INFO, INITIAL_ROOMS, INITIAL_TOURS, INITIAL_MENU_ITEMS, INITIAL_CONFERENCE_HALLS } from '../data/hotelData';
+import { HotelInfo, Room, TourPackage, MenuItem, ConferenceHall, RoomBooking, HotelEvent, Currency } from '../types';
+import { INITIAL_HOTEL_INFO, INITIAL_ROOMS, INITIAL_TOURS, INITIAL_MENU_ITEMS, INITIAL_CONFERENCE_HALLS, INITIAL_EVENTS } from '../data/hotelData';
 
 interface HotelContextType {
   hotelInfo: HotelInfo;
@@ -21,6 +21,11 @@ interface HotelContextType {
   updateMenuItem: (id: string, updated: Partial<MenuItem>) => void;
   addMenuItem: (item: MenuItem) => void;
   deleteMenuItem: (id: string) => void;
+
+  events: HotelEvent[];
+  addEvent: (event: HotelEvent) => void;
+  updateEvent: (id: string, updated: Partial<HotelEvent>) => void;
+  deleteEvent: (id: string) => void;
 
   conferenceHalls: ConferenceHall[];
 
@@ -45,6 +50,9 @@ interface HotelContextType {
 
   selectedTourForBooking: TourPackage | null;
   setSelectedTourForBooking: (tour: TourPackage | null) => void;
+
+  selectedEventForMedia: HotelEvent | null;
+  setSelectedEventForMedia: (event: HotelEvent | null) => void;
 
   resetToDefaults: () => void;
   exportDataJSON: () => string;
@@ -93,6 +101,15 @@ export const HotelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   });
 
+  const [events, setEvents] = useState<HotelEvent[]>(() => {
+    try {
+      const saved = localStorage.getItem(`${STORAGE_KEY}_events`);
+      return saved ? JSON.parse(saved) : INITIAL_EVENTS;
+    } catch {
+      return INITIAL_EVENTS;
+    }
+  });
+
   const [conferenceHalls] = useState<ConferenceHall[]>(INITIAL_CONFERENCE_HALLS);
 
   const [bookings, setBookings] = useState<RoomBooking[]>(() => {
@@ -102,7 +119,6 @@ export const HotelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     } catch {
       // ignore
     }
-    // Default sample booking
     return [
       {
         id: 'bk-sample-1',
@@ -135,6 +151,7 @@ export const HotelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [selectedRoomForBooking, setSelectedRoomForBooking] = useState<Room | null>(null);
   const [selectedRoomForDetail, setSelectedRoomForDetail] = useState<Room | null>(null);
   const [selectedTourForBooking, setSelectedTourForBooking] = useState<TourPackage | null>(null);
+  const [selectedEventForMedia, setSelectedEventForMedia] = useState<HotelEvent | null>(null);
 
   // Persistence effects
   useEffect(() => {
@@ -168,6 +185,14 @@ export const HotelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       console.warn('Storage error', e);
     }
   }, [menuItems]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(`${STORAGE_KEY}_events`, JSON.stringify(events));
+    } catch (e) {
+      console.warn('Storage error', e);
+    }
+  }, [events]);
 
   useEffect(() => {
     try {
@@ -226,6 +251,18 @@ export const HotelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setMenuItems(prev => prev.filter(m => m.id !== id));
   };
 
+  const addEvent = (event: HotelEvent) => {
+    setEvents(prev => [event, ...prev]);
+  };
+
+  const updateEvent = (id: string, updated: Partial<HotelEvent>) => {
+    setEvents(prev => prev.map(e => e.id === id ? { ...e, ...updated } : e));
+  };
+
+  const deleteEvent = (id: string) => {
+    setEvents(prev => prev.filter(e => e.id !== id));
+  };
+
   const addBooking = (bookingData: Omit<RoomBooking, 'id' | 'createdAt' | 'status'>): RoomBooking => {
     const newBooking: RoomBooking = {
       ...bookingData,
@@ -250,10 +287,12 @@ export const HotelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setRooms(INITIAL_ROOMS);
     setTours(INITIAL_TOURS);
     setMenuItems(INITIAL_MENU_ITEMS);
+    setEvents(INITIAL_EVENTS);
     localStorage.removeItem(`${STORAGE_KEY}_info`);
     localStorage.removeItem(`${STORAGE_KEY}_rooms`);
     localStorage.removeItem(`${STORAGE_KEY}_tours`);
     localStorage.removeItem(`${STORAGE_KEY}_menu`);
+    localStorage.removeItem(`${STORAGE_KEY}_events`);
   };
 
   const exportDataJSON = (): string => {
@@ -262,6 +301,7 @@ export const HotelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       rooms,
       tours,
       menuItems,
+      events,
       exportedAt: new Date().toISOString()
     };
     return JSON.stringify(exportData, null, 2);
@@ -274,6 +314,7 @@ export const HotelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       if (Array.isArray(data.rooms)) setRooms(data.rooms);
       if (Array.isArray(data.tours)) setTours(data.tours);
       if (Array.isArray(data.menuItems)) setMenuItems(data.menuItems);
+      if (Array.isArray(data.events)) setEvents(data.events);
       return true;
     } catch (e) {
       console.error('Import error', e);
@@ -299,6 +340,10 @@ export const HotelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         updateMenuItem,
         addMenuItem,
         deleteMenuItem,
+        events,
+        addEvent,
+        updateEvent,
+        deleteEvent,
         conferenceHalls,
         bookings,
         addBooking,
@@ -317,6 +362,8 @@ export const HotelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         setSelectedRoomForDetail,
         selectedTourForBooking,
         setSelectedTourForBooking,
+        selectedEventForMedia,
+        setSelectedEventForMedia,
         resetToDefaults,
         exportDataJSON,
         importDataJSON

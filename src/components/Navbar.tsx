@@ -16,6 +16,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onBookClick, activeSection, setA
     { id: 'rooms', label: 'Rooms & Suites' },
     { id: 'dining', label: 'Dining & Coffee' },
     { id: 'tours', label: 'Tours & Safaris' },
+    { id: 'events', label: 'Events & Media' },
     { id: 'meetings', label: 'Conferences' },
     { id: 'about', label: 'About & Location' },
   ];
@@ -64,7 +65,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onBookClick, activeSection, setA
             <button
               onClick={() => setIsAdminOpen(true)}
               className="flex items-center gap-1 text-stone-300 hover:text-amber-300 transition-colors ml-2"
-              title="System Admin Portal (Edit Hotel Content)"
+              title="System Admin Portal (Edit Hotel Content & Upload Media)"
             >
               <Lock className="w-3 h-3 text-amber-400" />
               <span className="font-semibold">Admin CMS</span>
@@ -100,7 +101,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onBookClick, activeSection, setA
           </a>
 
           {/* Zone 2: 4-6 text navigation links */}
-          <nav className="hidden lg:flex items-center gap-7 text-sm font-medium text-stone-700">
+          <nav className="hidden lg:flex items-center gap-6 text-sm font-medium text-stone-700">
             {navLinks.map((link) => (
               <button
                 key={link.id}

@@ -1,4 +1,4 @@
-import { HotelInfo, Room, TourPackage, MenuItem, ConferenceHall } from '../types';
+import { HotelInfo, Room, TourPackage, MenuItem, ConferenceHall, HotelEvent } from '../types';
 
 export const INITIAL_HOTEL_INFO: HotelInfo = {
   name: 'Tourist Hotel',
@@ -276,5 +276,58 @@ export const INITIAL_CONFERENCE_HALLS: ConferenceHall[] = [
     description: 'Intimate, sound-insulated executive meeting room equipped with ergonomic leather armchairs, conference display, video conferencing camera, and dedicated refreshment lounge.',
     suitableFor: ['Board Meetings', 'Strategic Retreats', 'VIP Delegations', 'Interviews'],
     amenities: ['65" Ultra HD Presentation Screen', 'High-speed Fiber Wi-Fi', 'Executive Coffee & Snack Bar', 'Private Restrooms']
+  }
+];
+
+export const INITIAL_EVENTS: HotelEvent[] = [
+  {
+    id: 'evt-enkutatash-2026',
+    title: 'Enkutatash Ethiopian New Year Grand Gala & Buna Festival',
+    date: 'Sep 11, 2026',
+    category: 'cultural',
+    description: 'Our annual celebration of the Ethiopian New Year in Arba Minch! Guests and travelers enjoyed traditional Adey Abeba yellow flower arrangements, live acoustic Kirar music, a continuous roasting coffee ceremony on the lawn, and a grand feast featuring Lake Chamo fish and Doro Wat.',
+    mediaType: 'image',
+    mediaUrl: '/src/assets/images/hotel_restaurant_dining_1791052577683.jpg',
+    thumbnailUrl: '/src/assets/images/hotel_restaurant_dining_1791052577683.jpg',
+    location: 'Tourist Hotel Garden Lawn',
+    featured: true
+  },
+  {
+    id: 'evt-lake-chamo-clip',
+    title: 'Lake Chamo Sunrise Boat Safari Video Highlights',
+    date: 'Aug 24, 2026',
+    category: 'safari',
+    description: 'Short video clip captured by our resident guide during the early morning boat expedition across Lake Chamo. Watch the Nile crocodiles gliding gracefully along the sandbanks and hippopotamus pods surfacing near the Nechisar boundary.',
+    mediaType: 'video',
+    // Standard reliable royalty-free video asset for natural water & safari showcase
+    mediaUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
+    thumbnailUrl: '/src/assets/images/arbaminch_chamo_safari_1791052587992.jpg',
+    videoDuration: '0:15',
+    location: 'Lake Chamo, Arba Minch',
+    featured: true
+  },
+  {
+    id: 'evt-taxpayer-silver',
+    title: 'Tourist Hotel Recognized with Regional Silver Award for Hospitality Excellence',
+    date: 'Jul 18, 2026',
+    category: 'celebration',
+    description: 'We were deeply honored to receive the regional recognition award in Southern Ethiopia for institutional transparency, hospitality employment standards, and contributing to sustainable tourism across the Gamo Zone.',
+    mediaType: 'image',
+    mediaUrl: '/src/assets/images/hotel_hero_arbaminch_1791052555679.jpg',
+    thumbnailUrl: '/src/assets/images/hotel_hero_arbaminch_1791052555679.jpg',
+    location: 'Abaya Grand Hall',
+    featured: false
+  },
+  {
+    id: 'evt-dorze-weaving-demo',
+    title: 'Dorze Cultural Master Weavers Live Garden Exhibition',
+    date: 'Jun 05, 2026',
+    category: 'cultural',
+    description: 'Master artisans from the Chencha Dorze community brought their traditional wooden handlooms to our garden terrace, demonstrating how fine Ethiopian cotton scarves (Netela) are woven by hand.',
+    mediaType: 'image',
+    mediaUrl: '/src/assets/images/hotel_room_deluxe_1791052567783.jpg',
+    thumbnailUrl: '/src/assets/images/hotel_room_deluxe_1791052567783.jpg',
+    location: 'Tourist Hotel Open-Air Terrace',
+    featured: false
   }
 ];

@@ -6,6 +6,8 @@ import { RoomsSection } from './components/RoomsSection';
 import { RoomModal } from './components/RoomModal';
 import { DiningSection } from './components/DiningSection';
 import { ToursSection } from './components/ToursSection';
+import { EventsSection } from './components/EventsSection';
+import { EventMediaModal } from './components/EventMediaModal';
 import { ConferenceSection } from './components/ConferenceSection';
 import { AboutSection } from './components/AboutSection';
 import { ReservationModal } from './components/ReservationModal';
@@ -23,7 +25,8 @@ const HotelMainContent: React.FC = () => {
     setSelectedRoomForDetail,
     selectedTourForBooking,
     setSelectedTourForBooking,
-    hotelInfo
+    selectedEventForMedia,
+    setSelectedEventForMedia,
   } = useHotel();
 
   const [activeSection, setActiveSection] = useState<string>('rooms');
@@ -37,13 +40,11 @@ const HotelMainContent: React.FC = () => {
   };
 
   const handleBookTour = (tour: TourPackage) => {
-    // Open room reservation with pre-filled note or open booking
     setSelectedTourForBooking(tour);
     setIsReservationOpen(true);
   };
 
   const handleCheckAvailability = () => {
-    // Scroll smoothly to rooms section and open booking
     const roomsEl = document.getElementById('rooms');
     if (roomsEl) {
       roomsEl.scrollIntoView({ behavior: 'smooth' });
@@ -78,10 +79,15 @@ const HotelMainContent: React.FC = () => {
         {/* 4. Arba Minch Safaris & Excursions */}
         <ToursSection onBookTour={handleBookTour} />
 
-        {/* 5. Conferences & Meeting Halls */}
+        {/* 5. Recent Events & Media Gallery (Photos and Small Videos) */}
+        <EventsSection
+          onSelectEvent={(evt) => setSelectedEventForMedia(evt)}
+        />
+
+        {/* 6. Conferences & Meeting Halls */}
         <ConferenceSection />
 
-        {/* 6. About Tourist Hotel & Arba Minch */}
+        {/* 7. About Tourist Hotel & Arba Minch */}
         <AboutSection />
       </main>
 
@@ -115,7 +121,13 @@ const HotelMainContent: React.FC = () => {
         />
       )}
 
-      {/* System Admin Content Management Portal (Answering Question 2) */}
+      {/* Event Photo/Video Fullscreen Lightbox Modal */}
+      <EventMediaModal
+        event={selectedEventForMedia}
+        onClose={() => setSelectedEventForMedia(null)}
+      />
+
+      {/* System Admin Content Management Portal */}
       <AdminPortal
         isOpen={isAdminOpen}
         onClose={() => setIsAdminOpen(false)}

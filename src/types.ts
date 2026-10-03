@@ -16,7 +16,7 @@ export interface Room {
   amenities: string[];
   features: string[];
   available: boolean;
-  statusText?: string; // e.g. "Available", "Popular", "High Demand"
+  statusText?: string;
 }
 
 export interface TourPackage {
@@ -95,4 +95,18 @@ export interface RoomBooking {
   flightDetails?: string;
   status: 'Confirmed' | 'Pending' | 'Checked-in' | 'Cancelled';
   createdAt: string;
+}
+
+export interface HotelEvent {
+  id: string;
+  title: string;
+  date: string;
+  category: 'cultural' | 'conference' | 'celebration' | 'safari' | 'general';
+  description: string;
+  mediaType: 'image' | 'video';
+  mediaUrl: string; // Base64 data URL or remote URL
+  thumbnailUrl?: string;
+  videoDuration?: string;
+  location?: string;
+  featured?: boolean;
 }

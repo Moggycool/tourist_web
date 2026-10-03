@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
-import { X, Lock, Save, Plus, Trash2, Edit3, BedDouble, Compass, Utensils, BookOpen, Download, Upload, RefreshCw, CheckCircle, ShieldAlert } from 'lucide-react';
+import React, { useState, useRef } from 'react';
+import { X, Lock, Save, Plus, Trash2, BedDouble, Compass, Utensils, Download, Upload, RefreshCw, CheckCircle, Film, Image as ImageIcon, Video, Calendar, MapPin, Eye } from 'lucide-react';
 import { useHotel } from '../context/HotelContext';
-import { Room, TourPackage, MenuItem, HotelInfo } from '../types';
+import { Room, TourPackage, MenuItem, HotelInfo, HotelEvent } from '../types';
 
 interface AdminPortalProps {
   isOpen: boolean;
@@ -20,6 +20,9 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ isOpen, onClose }) => 
     updateTour,
     menuItems,
     updateMenuItem,
+    events,
+    addEvent,
+    deleteEvent,
     bookings,
     updateBookingStatus,
     deleteBooking,
@@ -29,13 +32,13 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ isOpen, onClose }) => 
     formatPrice
   } = useHotel();
 
-  const [activeTab, setActiveTab] = useState<'info' | 'rooms' | 'tours' | 'dining' | 'bookings' | 'backup'>('info');
+  const [activeTab, setActiveTab] = useState<'info' | 'rooms' | 'tours' | 'dining' | 'events' | 'bookings' | 'backup'>('events');
   const [saveToast, setSaveToast] = useState<string | null>(null);
 
   // Editable local state for hotel info
   const [editableInfo, setEditableInfo] = useState<HotelInfo>(hotelInfo);
 
-  // New room modal state
+  // New room state
   const [showAddRoom, setShowAddRoom] = useState(false);
   const [newRoomName, setNewRoomName] = useState('');
   const [newRoomCategory, setNewRoomCategory] = useState<'standard' | 'deluxe' | 'suite' | 'family'>('standard');
@@ -43,6 +46,19 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ isOpen, onClose }) => 
   const [newRoomPriceUSD, setNewRoomPriceUSD] = useState(30);
   const [newRoomBed, setNewRoomBed] = useState('1 King Bed');
   const [newRoomDesc, setNewRoomDesc] = useState('');
+
+  // New event / media state
+  const [showAddEvent, setShowAddEvent] = useState(false);
+  const [eventTitle, setEventTitle] = useState('');
+  const [eventDate, setEventDate] = useState('2026-10-03');
+  const [eventCategory, setEventCategory] = useState<HotelEvent['category']>('cultural');
+  const [eventLocation, setEventLocation] = useState('Tourist Hotel Arba Minch');
+  const [eventDesc, setEventDesc] = useState('');
+  const [eventMediaType, setEventMediaType] = useState<'image' | 'video'>('image');
+  const [eventMediaUrl, setEventMediaUrl] = useState('');
+  const [uploadedFileSize, setUploadedFileSize] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   // Backup import state
   const [importJsonText, setImportJsonText] = useState('');
@@ -90,6 +106,71 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ isOpen, onClose }) => 
     triggerToast(`New room "${newRoom.name}" created!`);
   };
 
+  // Handle local photo/video file upload
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+
+    // Calculate human readable size
+    const sizeInMB = (file.size / (1024 * 1024)).toFixed(2);
+    setUploadedFileSize(`${sizeInMB} MB (${file.type})`);
+
+    // Detect media type
+    if (file.type.startsWith('video/')) {
+      setEventMediaType('video');
+    } else {
+      setEventMediaType('image');
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const dataUrl = event.target?.result as string;
+      setEventMediaUrl(dataUrl);
+      setIsUploading(false);
+    };
+    reader.onerror = () => {
+      alert('Error reading the file. Please try again.');
+      setIsUploading(false);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleCreateEvent = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!eventTitle.trim()) {
+      alert('Please provide an event title.');
+      return;
+    }
+    if (!eventMediaUrl.trim()) {
+      alert('Please upload a photo or video, or provide a media URL.');
+      return;
+    }
+
+    const newEvent: HotelEvent = {
+      id: `evt-${Date.now()}`,
+      title: eventTitle.trim(),
+      date: eventDate,
+      category: eventCategory,
+      location: eventLocation.trim(),
+      description: eventDesc.trim(),
+      mediaType: eventMediaType,
+      mediaUrl: eventMediaUrl,
+      thumbnailUrl: eventMediaType === 'video' ? '/src/assets/images/arbaminch_chamo_safari_1791052587992.jpg' : eventMediaUrl,
+      videoDuration: eventMediaType === 'video' ? 'Clip' : undefined,
+      featured: true
+    };
+
+    addEvent(newEvent);
+    setShowAddEvent(false);
+    setEventTitle('');
+    setEventDesc('');
+    setEventMediaUrl('');
+    setUploadedFileSize(null);
+    triggerToast(`New event "${newEvent.title}" published!`);
+  };
+
   const handleExport = () => {
     const jsonStr = exportDataJSON();
     const blob = new Blob([jsonStr], { type: 'application/json' });
@@ -127,7 +208,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ isOpen, onClose }) => 
             </div>
             <div>
               <h3 className="text-base font-bold">System Admin Content Management Portal</h3>
-              <p className="text-[11px] text-stone-400">Manage Tourist Hotel Arba Minch website content, rooms, and bookings</p>
+              <p className="text-[11px] text-stone-400">Manage Tourist Hotel Arba Minch website content, rooms, media & bookings</p>
             </div>
           </div>
 
@@ -141,6 +222,19 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ isOpen, onClose }) => 
 
         {/* Tab Navigation */}
         <div className="bg-stone-100 px-6 py-2 border-b border-stone-200 flex items-center gap-2 overflow-x-auto shrink-0 text-xs font-semibold">
+          <button
+            onClick={() => setActiveTab('events')}
+            className={`px-3.5 py-1.5 rounded-lg transition-colors whitespace-nowrap flex items-center gap-1.5 ${
+              activeTab === 'events' ? 'bg-amber-100 text-amber-950 shadow-xs font-bold' : 'text-stone-600 hover:text-stone-900'
+            }`}
+          >
+            <Film className="w-3.5 h-3.5 text-amber-700" />
+            <span>Recent Events & Media</span>
+            <span className="w-4 h-4 rounded-full bg-amber-700 text-white text-[10px] flex items-center justify-center font-bold">
+              {events.length}
+            </span>
+          </button>
+
           <button
             onClick={() => setActiveTab('info')}
             className={`px-3.5 py-1.5 rounded-lg transition-colors whitespace-nowrap ${
@@ -183,7 +277,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ isOpen, onClose }) => 
           <button
             onClick={() => setActiveTab('bookings')}
             className={`px-3.5 py-1.5 rounded-lg transition-colors whitespace-nowrap flex items-center gap-1.5 ${
-              activeTab === 'bookings' ? 'bg-amber-100 text-amber-900 shadow-xs font-bold' : 'text-stone-600 hover:text-stone-900'
+              activeTab === 'bookings' ? 'bg-white text-stone-900 shadow-xs font-bold' : 'text-stone-600 hover:text-stone-900'
             }`}
           >
             <span>Guest Bookings</span>
@@ -218,6 +312,308 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ isOpen, onClose }) => 
         {/* Content Body */}
         <div className="p-6 overflow-y-auto space-y-6 flex-1 text-stone-800">
           
+          {/* TAB: RECENT EVENTS & MEDIA (NEW FEATURE) */}
+          {activeTab === 'events' && (
+            <div className="space-y-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-stone-200 pb-4">
+                <div>
+                  <h4 className="text-base font-bold text-stone-900 flex items-center gap-2">
+                    <Film className="w-4 h-4 text-amber-700" />
+                    <span>Recent Events, Photos & Small Videos</span>
+                  </h4>
+                  <p className="text-xs text-stone-500">
+                    Upload conference photos, wedding moments, or wildlife boat video clips directly to the hotel website.
+                  </p>
+                </div>
+
+                <button
+                  onClick={() => setShowAddEvent(true)}
+                  className="px-4 py-2 bg-amber-700 hover:bg-amber-800 active:bg-amber-900 text-white rounded-xl text-xs font-bold shadow-sm transition-all flex items-center gap-1.5 self-start sm:self-auto"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>Upload Photo / Video</span>
+                </button>
+              </div>
+
+              {/* Upload New Event Form Modal */}
+              {showAddEvent && (
+                <form onSubmit={handleCreateEvent} className="p-5 sm:p-6 bg-amber-50/80 border border-amber-200 rounded-3xl space-y-4 animate-fadeIn">
+                  <div className="flex items-center justify-between border-b border-amber-200 pb-3">
+                    <div className="flex items-center gap-2">
+                      <div className="w-7 h-7 rounded-lg bg-amber-700 text-white flex items-center justify-center">
+                        <Upload className="w-4 h-4" />
+                      </div>
+                      <span className="text-sm font-bold text-amber-950">Upload New Event or Media Highlight</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setShowAddEvent(false)}
+                      className="text-xs text-stone-500 hover:text-stone-800 font-semibold"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+
+                  {/* Media File Upload Dropzone */}
+                  <div className="space-y-2">
+                    <label className="block text-xs font-bold text-stone-800">
+                      Upload Media (Photo or Small Video)
+                    </label>
+
+                    <div className="border-2 border-dashed border-amber-300 rounded-2xl p-5 text-center bg-white hover:bg-amber-50/40 transition-colors cursor-pointer"
+                      onClick={() => fileInputRef.current?.click()}
+                    >
+                      <input
+                        type="file"
+                        ref={fileInputRef}
+                        accept="image/*,video/*"
+                        onChange={handleFileUpload}
+                        className="hidden"
+                      />
+
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-center gap-3 text-amber-700">
+                          <ImageIcon className="w-6 h-6" />
+                          <span className="text-stone-300">/</span>
+                          <Video className="w-6 h-6" />
+                        </div>
+                        <p className="text-xs font-bold text-stone-800">
+                          Click here to select an Image (PNG, JPG) or Small Video (MP4, WebM)
+                        </p>
+                        <p className="text-[11px] text-stone-500">
+                          Directly from your phone or computer. Recommended video size: under 25 MB.
+                        </p>
+                        {uploadedFileSize && (
+                          <div className="inline-block px-2.5 py-1 rounded-md bg-emerald-100 text-emerald-800 font-bold text-[11px]">
+                            ✓ File loaded: {uploadedFileSize}
+                          </div>
+                        )}
+                        {isUploading && (
+                          <p className="text-xs text-amber-700 font-bold animate-pulse">Reading file data...</p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Or media URL alternative */}
+                  <div>
+                    <label className="block text-[11px] font-bold text-stone-700 mb-1">
+                      Or Paste Image / Video URL (Alternative)
+                    </label>
+                    <input
+                      type="text"
+                      value={eventMediaUrl}
+                      onChange={(e) => {
+                        setEventMediaUrl(e.target.value);
+                        if (e.target.value.endsWith('.mp4') || e.target.value.includes('video')) {
+                          setEventMediaType('video');
+                        }
+                      }}
+                      placeholder="https://... or data:image/... (automatically filled if file is chosen above)"
+                      className="w-full bg-white border border-stone-300 rounded-xl px-3 py-2 text-xs font-mono text-stone-800"
+                    />
+                  </div>
+
+                  {/* Live Media Preview if selected */}
+                  {eventMediaUrl && (
+                    <div className="p-3 bg-stone-900 rounded-2xl text-white space-y-2">
+                      <div className="flex items-center justify-between text-xs text-stone-400">
+                        <span>Live Media Preview:</span>
+                        <span className="uppercase text-amber-400 font-bold">{eventMediaType}</span>
+                      </div>
+                      <div className="max-h-48 overflow-hidden rounded-xl flex items-center justify-center bg-black">
+                        {eventMediaType === 'video' ? (
+                          <video
+                            src={eventMediaUrl}
+                            controls
+                            className="max-h-48 w-full object-contain"
+                          />
+                        ) : (
+                          <img
+                            src={eventMediaUrl}
+                            alt="Preview"
+                            className="max-h-48 w-full object-contain"
+                          />
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Event Details Form Inputs */}
+                  <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
+                    <div className="sm:col-span-8">
+                      <label className="block text-[11px] font-bold text-stone-700 mb-1">Event / Highlight Title</label>
+                      <input
+                        type="text"
+                        value={eventTitle}
+                        onChange={(e) => setEventTitle(e.target.value)}
+                        placeholder="e.g. Traditional Music Night or Lake Chamo Crocodile Sighting"
+                        className="w-full bg-white border border-stone-300 rounded-xl px-3 py-2 text-xs font-semibold"
+                        required
+                      />
+                    </div>
+
+                    <div className="sm:col-span-4">
+                      <label className="block text-[11px] font-bold text-stone-700 mb-1">Event Date</label>
+                      <input
+                        type="date"
+                        value={eventDate}
+                        onChange={(e) => setEventDate(e.target.value)}
+                        className="w-full bg-white border border-stone-300 rounded-xl px-3 py-2 text-xs font-semibold"
+                        required
+                      />
+                    </div>
+
+                    <div className="sm:col-span-4">
+                      <label className="block text-[11px] font-bold text-stone-700 mb-1">Category</label>
+                      <select
+                        value={eventCategory}
+                        onChange={(e) => setEventCategory(e.target.value as any)}
+                        className="w-full bg-white border border-stone-300 rounded-xl px-3 py-2 text-xs font-semibold"
+                      >
+                        <option value="cultural">Cultural Festival & Traditions</option>
+                        <option value="safari">Safari & Wildlife Clip</option>
+                        <option value="celebration">Awards & Celebrations</option>
+                        <option value="conference">Conference / Workshop</option>
+                        <option value="general">Hotel Life & Gardens</option>
+                      </select>
+                    </div>
+
+                    <div className="sm:col-span-4">
+                      <label className="block text-[11px] font-bold text-stone-700 mb-1">Media Type</label>
+                      <select
+                        value={eventMediaType}
+                        onChange={(e) => setEventMediaType(e.target.value as any)}
+                        className="w-full bg-white border border-stone-300 rounded-xl px-3 py-2 text-xs font-semibold"
+                      >
+                        <option value="image">Photo (Still Image)</option>
+                        <option value="video">Small Video Reel</option>
+                      </select>
+                    </div>
+
+                    <div className="sm:col-span-4">
+                      <label className="block text-[11px] font-bold text-stone-700 mb-1">Location</label>
+                      <input
+                        type="text"
+                        value={eventLocation}
+                        onChange={(e) => setEventLocation(e.target.value)}
+                        placeholder="e.g. Garden Terrace or Lake Chamo"
+                        className="w-full bg-white border border-stone-300 rounded-xl px-3 py-2 text-xs"
+                      />
+                    </div>
+
+                    <div className="sm:col-span-12">
+                      <label className="block text-[11px] font-bold text-stone-700 mb-1">Story / Description</label>
+                      <textarea
+                        rows={2}
+                        value={eventDesc}
+                        onChange={(e) => setEventDesc(e.target.value)}
+                        placeholder="Tell visitors what happened during this event or safari highlight..."
+                        className="w-full bg-white border border-stone-300 rounded-xl px-3 py-2 text-xs"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end gap-2 pt-2 border-t border-amber-200">
+                    <button
+                      type="button"
+                      onClick={() => setShowAddEvent(false)}
+                      className="px-4 py-2 bg-white text-stone-700 border border-stone-300 rounded-xl text-xs font-bold hover:bg-stone-50"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={isUploading}
+                      className="px-5 py-2 bg-amber-700 hover:bg-amber-800 text-white rounded-xl text-xs font-bold shadow-md transition-all flex items-center gap-1.5"
+                    >
+                      <Upload className="w-3.5 h-3.5" />
+                      <span>Publish Event to Website</span>
+                    </button>
+                  </div>
+                </form>
+              )}
+
+              {/* Existing Events Feed */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between text-xs text-stone-500">
+                  <span>Currently Published Events ({events.length})</span>
+                  <span>Displayed on homepage under "Recent Events"</span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {events.map((evt) => {
+                    const isVideo = evt.mediaType === 'video';
+                    return (
+                      <div
+                        key={evt.id}
+                        className="bg-stone-50 rounded-2xl p-4 border border-stone-200 space-y-3 flex flex-col justify-between"
+                      >
+                        <div className="space-y-2">
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="flex items-center gap-2">
+                              {isVideo ? (
+                                <span className="px-2 py-0.5 rounded bg-amber-200 text-amber-900 text-[10px] font-bold flex items-center gap-1">
+                                  <Film className="w-3 h-3" />
+                                  <span>VIDEO</span>
+                                </span>
+                              ) : (
+                                <span className="px-2 py-0.5 rounded bg-sky-100 text-sky-800 text-[10px] font-bold flex items-center gap-1">
+                                  <ImageIcon className="w-3 h-3" />
+                                  <span>PHOTO</span>
+                                </span>
+                              )}
+                              <span className="text-[11px] text-stone-400 capitalize">{evt.category}</span>
+                            </div>
+
+                            <button
+                              onClick={() => {
+                                if (confirm(`Delete event "${evt.title}"?`)) {
+                                  deleteEvent(evt.id);
+                                  triggerToast('Event deleted.');
+                                }
+                              }}
+                              className="p-1.5 text-stone-400 hover:text-rose-600 rounded-lg hover:bg-rose-50"
+                              title="Delete event"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+
+                          <div className="h-32 rounded-xl overflow-hidden bg-stone-900 relative">
+                            {isVideo ? (
+                              <video
+                                src={evt.mediaUrl}
+                                className="w-full h-full object-cover"
+                                muted
+                              />
+                            ) : (
+                              <img
+                                src={evt.thumbnailUrl || evt.mediaUrl}
+                                alt={evt.title}
+                                className="w-full h-full object-cover"
+                                referrerPolicy="no-referrer"
+                              />
+                            )}
+                          </div>
+
+                          <h5 className="font-bold text-stone-900 text-xs line-clamp-1">{evt.title}</h5>
+                          <p className="text-[11px] text-stone-500 line-clamp-2">{evt.description}</p>
+                        </div>
+
+                        <div className="pt-2 border-t border-stone-200 flex items-center justify-between text-[11px] text-stone-400">
+                          <span>📅 {evt.date}</span>
+                          <span>📍 {evt.location || 'Arba Minch'}</span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+            </div>
+          )}
+
           {/* TAB 1: HOTEL PROFILE & CONTACTS */}
           {activeTab === 'info' && (
             <form onSubmit={handleSaveHotelInfo} className="space-y-4 max-w-3xl">
@@ -434,7 +830,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ isOpen, onClose }) => 
                 </form>
               )}
 
-              {/* Rooms list table */}
+              {/* Rooms list */}
               <div className="space-y-3">
                 {rooms.map((room) => (
                   <div key={room.id} className="p-4 bg-stone-50 border border-stone-200 rounded-2xl space-y-3">
@@ -695,7 +1091,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ isOpen, onClose }) => 
                   <Download className="w-4 h-4 text-amber-700" />
                   <span>1. One-Click JSON Export</span>
                 </h5>
-                <p>Download the current database of rooms, prices, tours, and menu items to your computer as a `.json` backup file.</p>
+                <p>Download the current database of rooms, prices, events, videos, and menu items to your computer as a `.json` backup file.</p>
                 <button
                   onClick={handleExport}
                   className="px-4 py-2 bg-stone-900 hover:bg-stone-800 text-white rounded-lg font-bold flex items-center gap-2"
