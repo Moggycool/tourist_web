@@ -1,12 +1,15 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
-import tailwindcss from '@tailwindcss/vite';
+import basicSsl from '@vitejs/plugin-basic-ssl';
 
 export default defineConfig({
-  plugins: [react(), tailwindcss()],
+  plugins: [
+    react(),
+    basicSsl() // Generates local SSL certificate automatically
+  ],
   server: {
-    host: '0.0.0.0',
+    https: true,
     port: 3000,
-    allowedHosts: 'all',
-  },
+    host: '0.0.0.0'
+  }
 });
