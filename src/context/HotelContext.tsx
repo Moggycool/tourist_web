@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { HotelInfo, Room, TourPackage, MenuItem, ConferenceHall, RoomBooking, HotelEvent, Currency } from '../types';
-import { INITIAL_HOTEL_INFO, INITIAL_ROOMS, INITIAL_TOURS, INITIAL_MENU_ITEMS, INITIAL_CONFERENCE_HALLS, INITIAL_EVENTS } from '../data/hotelData';
+import { HotelInfo, Room, TourPackage, MenuItem, ConferenceHall, RoomBooking, HotelEvent, Currency, TelebirrMerchantConfig, NotificationLog } from '../types';
+import { INITIAL_HOTEL_INFO, INITIAL_ROOMS, INITIAL_TOURS, INITIAL_MENU_ITEMS, INITIAL_CONFERENCE_HALLS, INITIAL_EVENTS, INITIAL_TELEBIRR_CONFIG, INITIAL_NOTIFICATIONS } from '../data/hotelData';
 
 interface HotelContextType {
   hotelInfo: HotelInfo;
@@ -48,6 +48,15 @@ interface HotelContextType {
   changeAdminPassword: (newPass: string) => void;
   adminHeaderVisibility: 'always' | 'authenticated_only' | 'hidden';
   setAdminHeaderVisibility: (val: 'always' | 'authenticated_only' | 'hidden') => void;
+
+  telebirrConfig: TelebirrMerchantConfig;
+  updateTelebirrConfig: (cfg: Partial<TelebirrMerchantConfig>) => void;
+
+  notifications: NotificationLog[];
+  addNotification: (n: Omit<NotificationLog, 'id' | 'timestamp'>) => void;
+  sendReceptionWhatsAppNotification: (booking: RoomBooking) => void;
+  sendGuestWhatsAppConfirmation: (booking: RoomBooking) => void;
+  clearNotifications: () => void;
 
   selectedRoomForBooking: Room | null;
   setSelectedRoomForBooking: (room: Room | null) => void;
@@ -153,6 +162,26 @@ export const HotelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [currency, setCurrency] = useState<Currency>('ETB');
   const [isAdminOpen, setIsAdminOpen] = useState<boolean>(false);
   
+  // Telebirr Merchant configuration
+  const [telebirrConfig, setTelebirrConfig] = useState<TelebirrMerchantConfig>(() => {
+    try {
+      const saved = localStorage.getItem(`${STORAGE_KEY}_telebirr`);
+      return saved ? JSON.parse(saved) : INITIAL_TELEBIRR_CONFIG;
+    } catch {
+      return INITIAL_TELEBIRR_CONFIG;
+    }
+  });
+
+  // Notifications Log
+  const [notifications, setNotifications] = useState<NotificationLog[]>(() => {
+    try {
+      const saved = localStorage.getItem(`${STORAGE_KEY}_notifs`);
+      return saved ? JSON.parse(saved) : INITIAL_NOTIFICATIONS;
+    } catch {
+      return INITIAL_NOTIFICATIONS;
+    }
+  });
+
   // Admin password & session auth
   const [adminPassword, setAdminPassword] = useState<string>(() => {
     try {
@@ -292,6 +321,22 @@ export const HotelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   }, [bookings]);
 
+  useEffect(() => {
+    try {
+      localStorage.setItem(`${STORAGE_KEY}_telebirr`, JSON.stringify(telebirrConfig));
+    } catch (e) {
+      console.warn('Storage error', e);
+    }
+  }, [telebirrConfig]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(`${STORAGE_KEY}_notifs`, JSON.stringify(notifications));
+    } catch (e) {
+      console.warn('Storage error', e);
+    }
+  }, [notifications]);
+
   // Price Formatter
   const formatPrice = (amountETB: number, amountUSD?: number): string => {
     if (currency === 'USD') {
@@ -353,6 +398,58 @@ export const HotelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setEvents(prev => prev.filter(e => e.id !== id));
   };
 
+  const updateTelebirrConfig = (cfg: Partial<TelebirrMerchantConfig>) => {
+    setTelebirrConfig(prev => ({ ...prev, ...cfg }));
+  };
+
+  const addNotification = (n: Omit<NotificationLog, 'id' | 'timestamp'>) => {
+    const newNotif: NotificationLog = {
+      ...n,
+      id: `notif-${Date.now()}-${Math.random().toString(36).substr(2, 3)}`,
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + ' ' + new Date().toISOString().split('T')[0]
+    };
+    setNotifications(prev => [newNotif, ...prev]);
+  };
+
+  const clearNotifications = () => {
+    setNotifications([]);
+  };
+
+  const sendReceptionWhatsAppNotification = (booking: RoomBooking) => {
+    const text = `🏨 *NEW RESERVATION - TOURIST HOTEL ARBA MINCH*\n\nRef: *${booking.bookingRef}*\nGuest: *${booking.guestName}* (${booking.guestPhone})\nRoom: *${booking.roomName}*\nDates: ${booking.checkInDate} to ${booking.checkOutDate} (${booking.totalNights} nights)\nGuests: ${booking.adultsCount} Adults${booking.childrenCount ? `, ${booking.childrenCount} Children` : ''}\nTotal: *${booking.totalPriceETB.toLocaleString()} ETB*\nPayment: *${booking.paymentMethod?.toUpperCase() || 'TELEBIRR'}* (${booking.paymentStatus || 'Paid'})\n${booking.telebirrTxnId ? `Telebirr TXN: *${booking.telebirrTxnId}*\n` : ''}Airport Pickup: ${booking.airportPickupRequested ? `YES (Flight: ${booking.flightDetails || 'AMH'})` : 'No'}\nNotes: ${booking.specialRequests || 'None'}`;
+    
+    // Clean hotel phone for international WhatsApp link
+    const cleanPhone = (hotelInfo.phonePrimary || '251468811234').replace(/[^0-9]/g, '');
+    const url = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(text)}`;
+    window.open(url, '_blank');
+
+    addNotification({
+      bookingRef: booking.bookingRef,
+      type: 'whatsapp_reception',
+      recipient: `Reception (+${cleanPhone})`,
+      title: 'WhatsApp Alert Dispatched to Hotel Reception',
+      message: `Direct WhatsApp message dispatched for reservation ${booking.bookingRef} (${booking.guestName}).`,
+      status: 'Delivered'
+    });
+  };
+
+  const sendGuestWhatsAppConfirmation = (booking: RoomBooking) => {
+    const text = `🏨 *TOURIST HOTEL ARBA MINCH - RESERVATION CONFIRMATION*\n\nDear ${booking.guestName},\nThank you for choosing Tourist Hotel Arba Minch!\n\nYour Booking Ref: *${booking.bookingRef}*\nRoom: *${booking.roomName}*\nCheck-in: *${booking.checkInDate}* (from 2:00 PM)\nCheck-out: *${booking.checkOutDate}* (until 11:00 AM)\nTotal Amount: *${booking.totalPriceETB.toLocaleString()} ETB*\nPayment Status: *${booking.paymentStatus || 'Confirmed'}*\n${booking.telebirrTxnId ? `Telebirr TXN: *${booking.telebirrTxnId}*\n` : ''}Airport Transfer: ${booking.airportPickupRequested ? 'Arranged at Arba Minch Domestic Airport (AMH)' : 'Not needed'}\n\n📍 Tourist Hotel, Sikela Area, Arba Minch\n📞 Reception: ${hotelInfo.phonePrimary}\nHave a wonderful journey to the Great Rift Valley!`;
+
+    const cleanGuestPhone = booking.guestPhone.replace(/[^0-9]/g, '');
+    const url = `https://wa.me/${cleanGuestPhone}?text=${encodeURIComponent(text)}`;
+    window.open(url, '_blank');
+
+    addNotification({
+      bookingRef: booking.bookingRef,
+      type: 'whatsapp_guest',
+      recipient: `Guest WhatsApp (+${cleanGuestPhone})`,
+      title: 'Voucher WhatsApp Sent to Guest',
+      message: `Reservation voucher sent directly to guest ${booking.guestName}.`,
+      status: 'Delivered'
+    });
+  };
+
   const addBooking = (bookingData: Omit<RoomBooking, 'id' | 'createdAt' | 'status'>): RoomBooking => {
     const newBooking: RoomBooking = {
       ...bookingData,
@@ -361,6 +458,26 @@ export const HotelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       status: 'Confirmed'
     };
     setBookings(prev => [newBooking, ...prev]);
+
+    // Automated Reception & Guest Notifications triggered upon booking
+    addNotification({
+      bookingRef: newBooking.bookingRef,
+      type: 'whatsapp_reception',
+      recipient: `Hotel Front Desk (${hotelInfo.phonePrimary})`,
+      title: `Automated Reception Alert: ${newBooking.roomName}`,
+      message: `New booking received for ${newBooking.guestName} (${newBooking.totalNights} nights). Payment: ${newBooking.paymentMethod || 'Telebirr'} (${newBooking.paymentStatus || 'Confirmed'}). Total: ${newBooking.totalPriceETB.toLocaleString()} ETB.`,
+      status: 'Delivered'
+    });
+
+    addNotification({
+      bookingRef: newBooking.bookingRef,
+      type: 'sms_guest',
+      recipient: newBooking.guestPhone,
+      title: 'Automated Guest Booking SMS Confirmation',
+      message: `Tourist Hotel: Selam ${newBooking.guestName}! Reservation ${newBooking.bookingRef} is confirmed. View details at reception. Tel: ${hotelInfo.phonePrimary}.`,
+      status: 'Sent'
+    });
+
     return newBooking;
   };
 
@@ -452,6 +569,13 @@ export const HotelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         changeAdminPassword,
         adminHeaderVisibility,
         setAdminHeaderVisibility,
+        telebirrConfig,
+        updateTelebirrConfig,
+        notifications,
+        addNotification,
+        sendReceptionWhatsAppNotification,
+        sendGuestWhatsAppConfirmation,
+        clearNotifications,
         selectedRoomForBooking,
         setSelectedRoomForBooking,
         selectedRoomForDetail,

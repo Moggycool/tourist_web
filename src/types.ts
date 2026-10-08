@@ -94,7 +94,31 @@ export interface RoomBooking {
   airportPickupRequested: boolean;
   flightDetails?: string;
   status: 'Confirmed' | 'Pending' | 'Checked-in' | 'Cancelled';
+  paymentMethod?: 'telebirr' | 'cbe_birr' | 'pay_on_arrival';
+  paymentStatus?: 'Paid' | 'Pending' | 'Pay on Arrival';
+  telebirrTxnId?: string;
+  telebirrPhone?: string;
   createdAt: string;
+}
+
+export interface NotificationLog {
+  id: string;
+  bookingRef: string;
+  type: 'whatsapp_reception' | 'whatsapp_guest' | 'sms_guest' | 'email_guest';
+  recipient: string;
+  title: string;
+  message: string;
+  status: 'Sent' | 'Delivered' | 'Simulated';
+  timestamp: string;
+}
+
+export interface TelebirrMerchantConfig {
+  merchantName: string;
+  merchantCode: string;
+  shortCode: string;
+  accountPhone: string;
+  appId: string;
+  sandboxMode: boolean;
 }
 
 export interface HotelEvent {

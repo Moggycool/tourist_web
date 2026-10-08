@@ -1,7 +1,8 @@
 import React, { useState, useRef } from 'react';
-import { X, Lock, Save, Plus, Trash2, BedDouble, Compass, Utensils, Download, Upload, RefreshCw, CheckCircle, Film, Image as ImageIcon, Video, Calendar, MapPin, Eye, ShieldCheck, Key, LogOut, Settings, HelpCircle } from 'lucide-react';
+import { X, Lock, Save, Plus, Trash2, BedDouble, Compass, Utensils, Download, Upload, RefreshCw, CheckCircle, Film, Image as ImageIcon, Video, Calendar, MapPin, Eye, ShieldCheck, Key, LogOut, Settings, HelpCircle, Smartphone, Send } from 'lucide-react';
 import { useHotel } from '../context/HotelContext';
 import { Room, TourPackage, MenuItem, HotelInfo, HotelEvent } from '../types';
+import { TelebirrDemoModal } from './TelebirrDemoModal';
 
 interface AdminPortalProps {
   isOpen: boolean;
@@ -35,11 +36,20 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ isOpen, onClose }) => 
     logoutAdmin,
     changeAdminPassword,
     adminHeaderVisibility,
-    setAdminHeaderVisibility
+    setAdminHeaderVisibility,
+    telebirrConfig,
+    updateTelebirrConfig,
+    notifications,
+    sendReceptionWhatsAppNotification,
+    sendGuestWhatsAppConfirmation,
+    clearNotifications
   } = useHotel();
 
-  const [activeTab, setActiveTab] = useState<'info' | 'rooms' | 'tours' | 'dining' | 'events' | 'bookings' | 'security' | 'backup'>('events');
+  const [activeTab, setActiveTab] = useState<'info' | 'rooms' | 'tours' | 'dining' | 'events' | 'bookings' | 'notifications' | 'security' | 'backup'>('events');
   const [saveToast, setSaveToast] = useState<string | null>(null);
+
+  // Telebirr Vendor Simulator in Admin
+  const [isAdminTelebirrDemoOpen, setIsAdminTelebirrDemoOpen] = useState(false);
 
   // Authentication inputs
   const [passwordInput, setPasswordInput] = useState('');
@@ -397,6 +407,19 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ isOpen, onClose }) => 
             <span>Guest Bookings</span>
             <span className="px-1.5 py-0.2 rounded-full bg-amber-700 text-white text-[10px] font-bold">
               {bookings.length}
+            </span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('notifications')}
+            className={`px-3.5 py-1.5 rounded-lg transition-colors whitespace-nowrap flex items-center gap-1.5 ${
+              activeTab === 'notifications' ? 'bg-blue-100 text-blue-950 shadow-xs font-bold' : 'text-stone-600 hover:text-stone-900'
+            }`}
+          >
+            <Smartphone className="w-3.5 h-3.5 text-blue-700" />
+            <span>Notifications & Telebirr</span>
+            <span className="w-4 h-4 rounded-full bg-blue-700 text-white text-[10px] flex items-center justify-center font-bold">
+              {notifications.length}
             </span>
           </button>
 
@@ -1182,6 +1205,49 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ isOpen, onClose }) => 
                         </div>
                       </div>
 
+                      {/* Payment & Telebirr details */}
+                      <div className="p-2.5 bg-white rounded-xl border border-stone-200 flex flex-wrap items-center justify-between gap-2">
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] text-stone-400 font-bold uppercase">PAYMENT:</span>
+                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                            b.paymentMethod === 'telebirr'
+                              ? 'bg-blue-100 text-blue-900 border border-blue-200'
+                              : b.paymentMethod === 'cbe_birr'
+                              ? 'bg-purple-100 text-purple-900'
+                              : 'bg-amber-100 text-amber-900'
+                          }`}>
+                            {b.paymentMethod ? b.paymentMethod.toUpperCase() : 'TELEBIRR'} ({b.paymentStatus || 'Paid'})
+                          </span>
+                          {b.telebirrTxnId && (
+                            <span className="font-mono text-[10px] text-blue-800 font-bold">
+                              TXN: {b.telebirrTxnId}
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Automated WhatsApp Dispatch buttons for staff */}
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => sendGuestWhatsAppConfirmation(b)}
+                            className="px-2.5 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-[11px] font-semibold border border-emerald-200 flex items-center gap-1 transition-colors cursor-pointer"
+                            title="Send voucher WhatsApp to guest"
+                          >
+                            <Send className="w-3 h-3 text-emerald-700" />
+                            <span>WhatsApp Guest</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => sendReceptionWhatsAppNotification(b)}
+                            className="px-2.5 py-1 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-800 text-[11px] font-semibold flex items-center gap-1 transition-colors cursor-pointer"
+                            title="Forward alert to reception WhatsApp"
+                          >
+                            <Smartphone className="w-3 h-3 text-stone-600" />
+                            <span>WhatsApp Reception</span>
+                          </button>
+                        </div>
+                      </div>
+
                       {b.airportPickupRequested && (
                         <div className="p-2 bg-amber-50 rounded-lg text-amber-900 text-[11px] border border-amber-100 flex items-center gap-2">
                           <span>✈️ <strong>Airport Pickup:</strong> {b.flightDetails || 'Required from Arba Minch Airport'}</span>
@@ -1197,6 +1263,130 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ isOpen, onClose }) => 
                   ))}
                 </div>
               )}
+            </div>
+          )}
+
+          {/* TAB: AUTOMATED NOTIFICATIONS & TELEBIRR GATEWAY */}
+          {activeTab === 'notifications' && (
+            <div className="space-y-6 max-w-3xl">
+              <div>
+                <h4 className="text-base font-bold text-stone-900 mb-1 flex items-center gap-2">
+                  <Smartphone className="w-5 h-5 text-blue-700" />
+                  <span>Automated Notifications & Telebirr Mobile Money</span>
+                </h4>
+                <p className="text-xs text-stone-500">
+                  Manage real-time guest/reception alerts (WhatsApp & Ethio Telecom SMS) and test the Telebirr vendor payment flow.
+                </p>
+              </div>
+
+              {/* 1. Telebirr Vendor Payment Simulator & Configuration */}
+              <div className="p-5 bg-blue-50/80 rounded-2xl border border-blue-200 space-y-4 text-xs text-blue-950">
+                <div className="flex items-center justify-between border-b border-blue-200 pb-3">
+                  <div className="flex items-center gap-2">
+                    <div className="w-7 h-7 rounded-lg bg-[#005cb9] text-white font-black text-xs flex items-center justify-center">
+                      tb
+                    </div>
+                    <div>
+                      <h5 className="font-extrabold text-sm text-blue-950">Telebirr Merchant Gateway Integration</h5>
+                      <p className="text-[11px] text-blue-800">Ethio Telecom Mobile Money API & In-Store USSD</p>
+                    </div>
+                  </div>
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-400 text-blue-950">
+                    Active
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div>
+                    <label className="block text-[10px] text-blue-900 font-bold mb-1">Merchant Shortcode</label>
+                    <input
+                      type="text"
+                      value={telebirrConfig.merchantCode}
+                      onChange={(e) => updateTelebirrConfig({ merchantCode: e.target.value })}
+                      className="w-full bg-white border border-blue-300 rounded-lg px-2.5 py-1.5 font-mono font-bold text-blue-950"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] text-blue-900 font-bold mb-1">Merchant Name</label>
+                    <input
+                      type="text"
+                      value={telebirrConfig.merchantName}
+                      onChange={(e) => updateTelebirrConfig({ merchantName: e.target.value })}
+                      className="w-full bg-white border border-blue-300 rounded-lg px-2.5 py-1.5 font-bold text-blue-950"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] text-blue-900 font-bold mb-1">Settlement Mobile Number</label>
+                    <input
+                      type="text"
+                      value={telebirrConfig.accountPhone}
+                      onChange={(e) => updateTelebirrConfig({ accountPhone: e.target.value })}
+                      className="w-full bg-white border border-blue-300 rounded-lg px-2.5 py-1.5 font-mono text-blue-950"
+                    />
+                  </div>
+                </div>
+
+                <div className="p-3 bg-white rounded-xl border border-blue-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                  <div className="space-y-0.5">
+                    <span className="font-bold text-blue-950 block">Vendor Payment Demonstration Tool</span>
+                    <span className="text-[11px] text-stone-600 block">
+                      Launch a realistic Telebirr mobile authorization prompt to demonstrate payments to Ethio Telecom reps and hotel stakeholders.
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setIsAdminTelebirrDemoOpen(true)}
+                    className="px-4 py-2 bg-[#005cb9] hover:bg-blue-800 text-white font-bold text-xs rounded-xl shadow-xs transition-all flex items-center gap-1.5 shrink-0 cursor-pointer"
+                  >
+                    <Smartphone className="w-3.5 h-3.5 text-amber-300" />
+                    <span>Launch Vendor Demo Flow</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* 2. Automated Notifications Dispatch History */}
+              <div className="p-5 bg-stone-50 rounded-2xl border border-stone-200 space-y-4 text-xs">
+                <div className="flex items-center justify-between border-b border-stone-200 pb-3">
+                  <div>
+                    <h5 className="font-bold text-stone-900 text-sm">Automated Guest & Reception Notification Logs</h5>
+                    <p className="text-[11px] text-stone-500">Live records of alerts dispatched via WhatsApp & SMS</p>
+                  </div>
+                  <button
+                    onClick={clearNotifications}
+                    className="text-[11px] text-stone-500 hover:text-stone-800 font-semibold cursor-pointer"
+                  >
+                    Clear Log
+                  </button>
+                </div>
+
+                {notifications.length === 0 ? (
+                  <div className="p-6 text-center text-stone-400">
+                    No notification logs recorded yet.
+                  </div>
+                ) : (
+                  <div className="space-y-2.5 max-h-72 overflow-y-auto pr-1">
+                    {notifications.map((n) => (
+                      <div
+                        key={n.id}
+                        className="p-3 bg-white rounded-xl border border-stone-200 space-y-1 text-xs"
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="font-bold text-stone-900 flex items-center gap-1.5">
+                            <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                            <span>{n.title}</span>
+                          </span>
+                          <span className="text-[10px] text-stone-400">{n.timestamp}</span>
+                        </div>
+                        <p className="text-[11px] text-stone-600 leading-relaxed">{n.message}</p>
+                        <div className="pt-1 flex items-center justify-between text-[10px] text-stone-400 border-t border-stone-100">
+                          <span>To: <strong>{n.recipient}</strong></span>
+                          <span className="text-emerald-700 font-bold uppercase">Status: {n.status}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           )}
 
@@ -1428,6 +1618,19 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ isOpen, onClose }) => 
         </div>
 
       </div>
+
+      {/* Admin Vendor Telebirr Simulator */}
+      <TelebirrDemoModal
+        isOpen={isAdminTelebirrDemoOpen}
+        onClose={() => setIsAdminTelebirrDemoOpen(false)}
+        amountETB={4800}
+        merchantName={telebirrConfig.merchantName}
+        merchantCode={telebirrConfig.merchantCode}
+        guestPhone={hotelInfo.phonePrimary}
+        onSuccess={(txnId) => {
+          triggerToast(`Demo Telebirr payment verified! Txn Ref: ${txnId}`);
+        }}
+      />
     </div>
   );
 };

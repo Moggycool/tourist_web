@@ -1,4 +1,36 @@
-import { HotelInfo, Room, TourPackage, MenuItem, ConferenceHall, HotelEvent } from '../types';
+import { HotelInfo, Room, TourPackage, MenuItem, ConferenceHall, HotelEvent, TelebirrMerchantConfig, NotificationLog } from '../types';
+
+export const INITIAL_TELEBIRR_CONFIG: TelebirrMerchantConfig = {
+  merchantName: 'Tourist Hotel Arba Minch',
+  merchantCode: '589214',
+  shortCode: '25109',
+  accountPhone: '+251 91 144 8899',
+  appId: 'TB_AMH_TOURIST_HOTEL_01',
+  sandboxMode: true
+};
+
+export const INITIAL_NOTIFICATIONS: NotificationLog[] = [
+  {
+    id: 'notif-1',
+    bookingRef: 'TH-AM-7489',
+    type: 'whatsapp_reception',
+    recipient: 'Reception Desk (+251 91 123 4567)',
+    title: 'New Booking & Telebirr Payment Confirmed',
+    message: 'New Guest: Elias Bekele (2 Guests) · Deluxe King Lake View · Oct 12-15 · Total: 14,400 ETB (Telebirr TXN: TB-9842103) · Airport pickup required.',
+    status: 'Delivered',
+    timestamp: '2026-10-02 11:45 AM'
+  },
+  {
+    id: 'notif-2',
+    bookingRef: 'TH-AM-7489',
+    type: 'sms_guest',
+    recipient: '+251 91 144 8899',
+    title: 'Automated Guest Booking Voucher SMS',
+    message: 'Tourist Hotel: Selam Elias! Your reservation TH-AM-7489 for Deluxe King Lake View is confirmed. Free AMH airport pickup scheduled. Tel: +251 46 881 1234.',
+    status: 'Sent',
+    timestamp: '2026-10-02 11:46 AM'
+  }
+];
 
 export const INITIAL_HOTEL_INFO: HotelInfo = {
   name: 'Tourist Hotel',
