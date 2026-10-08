@@ -9,8 +9,20 @@ interface NavbarProps {
 }
 
 export const Navbar: React.FC<NavbarProps> = ({ onBookClick, activeSection, setActiveSection }) => {
-  const { hotelInfo, currency, setCurrency, setIsAdminOpen, bookings } = useHotel();
+  const {
+    hotelInfo,
+    currency,
+    setCurrency,
+    setIsAdminOpen,
+    bookings,
+    isAdminAuthenticated,
+    adminHeaderVisibility
+  } = useHotel();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const showAdminLink =
+    adminHeaderVisibility === 'always' ||
+    (adminHeaderVisibility === 'authenticated_only' && isAdminAuthenticated);
 
   const navLinks = [
     { id: 'rooms', label: 'Rooms & Suites' },
@@ -61,20 +73,22 @@ export const Navbar: React.FC<NavbarProps> = ({ onBookClick, activeSection, setA
                 USD
               </button>
             </div>
-            {/* Admin Portal Shortcut */}
-            <button
-              onClick={() => setIsAdminOpen(true)}
-              className="flex items-center gap-1 text-stone-300 hover:text-amber-300 transition-colors ml-2"
-              title="System Admin Portal (Edit Hotel Content & Upload Media)"
-            >
-              <Lock className="w-3 h-3 text-amber-400" />
-              <span className="font-semibold">Admin CMS</span>
-              {bookings.length > 0 && (
-                <span className="w-3.5 h-3.5 bg-amber-500 text-stone-950 font-bold text-[9px] rounded-full flex items-center justify-center">
-                  {bookings.length}
-                </span>
-              )}
-            </button>
+            {/* Admin Portal Shortcut (visible to authenticated admin or when configured) */}
+            {showAdminLink && (
+              <button
+                onClick={() => setIsAdminOpen(true)}
+                className="flex items-center gap-1 text-amber-400 hover:text-amber-300 bg-stone-800/80 px-2 py-0.5 rounded transition-colors ml-2"
+                title="System Admin Portal (Logged In)"
+              >
+                <Lock className="w-3 h-3 text-amber-400" />
+                <span className="font-semibold text-white">Admin CMS</span>
+                {bookings.length > 0 && (
+                  <span className="w-3.5 h-3.5 bg-amber-500 text-stone-950 font-bold text-[9px] rounded-full flex items-center justify-center">
+                    {bookings.length}
+                  </span>
+                )}
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -155,16 +169,18 @@ export const Navbar: React.FC<NavbarProps> = ({ onBookClick, activeSection, setA
           </div>
 
           <div className="pt-3 border-t border-stone-100 flex items-center justify-between">
-            <button
-              onClick={() => {
-                setMobileMenuOpen(false);
-                setIsAdminOpen(true);
-              }}
-              className="flex items-center gap-1.5 text-xs font-bold text-amber-800 bg-amber-50 px-3 py-2 rounded-lg"
-            >
-              <Lock className="w-3.5 h-3.5" />
-              <span>Admin Management Portal</span>
-            </button>
+            {showAdminLink ? (
+              <button
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  setIsAdminOpen(true);
+                }}
+                className="flex items-center gap-1.5 text-xs font-bold text-amber-800 bg-amber-50 px-3 py-2 rounded-lg"
+              >
+                <Lock className="w-3.5 h-3.5" />
+                <span>Admin CMS (Logged In)</span>
+              </button>
+            ) : <div />}
 
             <button
               onClick={() => {

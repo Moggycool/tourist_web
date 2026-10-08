@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { X, Lock, Save, Plus, Trash2, BedDouble, Compass, Utensils, Download, Upload, RefreshCw, CheckCircle, Film, Image as ImageIcon, Video, Calendar, MapPin, Eye } from 'lucide-react';
+import { X, Lock, Save, Plus, Trash2, BedDouble, Compass, Utensils, Download, Upload, RefreshCw, CheckCircle, Film, Image as ImageIcon, Video, Calendar, MapPin, Eye, ShieldCheck, Key, LogOut, Settings, HelpCircle } from 'lucide-react';
 import { useHotel } from '../context/HotelContext';
 import { Room, TourPackage, MenuItem, HotelInfo, HotelEvent } from '../types';
 
@@ -29,11 +29,22 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ isOpen, onClose }) => 
     resetToDefaults,
     exportDataJSON,
     importDataJSON,
-    formatPrice
+    formatPrice,
+    isAdminAuthenticated,
+    authenticateAdmin,
+    logoutAdmin,
+    changeAdminPassword,
+    adminHeaderVisibility,
+    setAdminHeaderVisibility
   } = useHotel();
 
-  const [activeTab, setActiveTab] = useState<'info' | 'rooms' | 'tours' | 'dining' | 'events' | 'bookings' | 'backup'>('events');
+  const [activeTab, setActiveTab] = useState<'info' | 'rooms' | 'tours' | 'dining' | 'events' | 'bookings' | 'security' | 'backup'>('events');
   const [saveToast, setSaveToast] = useState<string | null>(null);
+
+  // Authentication inputs
+  const [passwordInput, setPasswordInput] = useState('');
+  const [loginError, setLoginError] = useState(false);
+  const [newPassInput, setNewPassInput] = useState('');
 
   // Editable local state for hotel info
   const [editableInfo, setEditableInfo] = useState<HotelInfo>(hotelInfo);
@@ -194,6 +205,90 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ isOpen, onClose }) => 
     }
   };
 
+  // If not logged in, render the Secure Admin Authentication Barrier
+  if (!isAdminAuthenticated) {
+    return (
+      <div className="fixed inset-0 z-50 overflow-y-auto bg-stone-950/85 backdrop-blur-md flex items-center justify-center p-4 animate-fadeIn">
+        <div className="fixed inset-0" onClick={onClose} />
+
+        <div className="relative w-full max-w-md bg-stone-900 text-white rounded-3xl p-6 sm:p-8 shadow-2xl border border-stone-800 z-10 space-y-6">
+          <div className="flex items-center justify-between border-b border-stone-800 pb-4">
+            <div className="flex items-center gap-2.5">
+              <div className="w-9 h-9 rounded-xl bg-amber-600 flex items-center justify-center text-white font-bold">
+                <Lock className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-white">Staff Management Portal</h3>
+                <p className="text-[11px] text-stone-400">Tourist Hotel · Arba Minch</p>
+              </div>
+            </div>
+            <button
+              onClick={onClose}
+              className="p-1.5 rounded-full hover:bg-stone-800 text-stone-400 hover:text-white"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              const ok = authenticateAdmin(passwordInput);
+              if (!ok) {
+                setLoginError(true);
+              } else {
+                setLoginError(false);
+                setPasswordInput('');
+              }
+            }}
+            className="space-y-4"
+          >
+            <div>
+              <label className="block text-xs font-bold text-stone-300 mb-1.5">
+                Enter Admin / Staff Passcode
+              </label>
+              <input
+                type="password"
+                placeholder="Passcode..."
+                value={passwordInput}
+                onChange={(e) => {
+                  setPasswordInput(e.target.value);
+                  setLoginError(false);
+                }}
+                className="w-full bg-stone-800 border border-stone-700 rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-stone-500 focus:outline-hidden focus:ring-2 focus:ring-amber-500 font-mono"
+                autoFocus
+                required
+              />
+              <p className="text-[11px] text-stone-400 mt-1.5">
+                Default passcode: <code className="bg-stone-800 px-1 py-0.5 rounded text-amber-300 font-mono">tourist2026</code>
+              </p>
+            </div>
+
+            {loginError && (
+              <div className="p-2.5 bg-rose-950/60 border border-rose-600/50 rounded-xl text-rose-300 text-xs">
+                Incorrect passcode. Please check with hotel management.
+              </div>
+            )}
+
+            <button
+              type="submit"
+              className="w-full py-2.5 bg-amber-600 hover:bg-amber-500 active:bg-amber-700 text-stone-950 font-bold text-xs rounded-xl shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer"
+            >
+              <Key className="w-4 h-4" />
+              <span>Unlock Admin Portal</span>
+            </button>
+          </form>
+
+          <div className="pt-2 border-t border-stone-800 text-center">
+            <span className="text-[11px] text-stone-500">
+              Restricted to authorized front-desk staff & management.
+            </span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-stone-950/80 backdrop-blur-xs flex items-center justify-center p-3 sm:p-6 animate-fadeIn">
       <div className="fixed inset-0" onClick={onClose} />
@@ -207,17 +302,36 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ isOpen, onClose }) => 
               <Lock className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="text-base font-bold">System Admin Content Management Portal</h3>
+              <div className="flex items-center gap-2">
+                <h3 className="text-base font-bold">System Admin Content Management Portal</h3>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                  Staff Authenticated
+                </span>
+              </div>
               <p className="text-[11px] text-stone-400">Manage Tourist Hotel Arba Minch website content, rooms, media & bookings</p>
             </div>
           </div>
 
-          <button
-            onClick={onClose}
-            className="p-1.5 rounded-full hover:bg-stone-800 text-stone-400 hover:text-white transition-colors"
-          >
-            <X className="w-5 h-5" />
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => {
+                logoutAdmin();
+                triggerToast('Logged out of Admin Portal.');
+              }}
+              className="px-3 py-1.5 rounded-lg bg-stone-800 hover:bg-stone-700 text-stone-300 hover:text-white text-xs font-semibold flex items-center gap-1.5 transition-colors"
+              title="Lock Admin Portal"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+              <span>Sign Out</span>
+            </button>
+
+            <button
+              onClick={onClose}
+              className="p-1.5 rounded-full hover:bg-stone-800 text-stone-400 hover:text-white transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
         </div>
 
         {/* Tab Navigation */}
@@ -284,6 +398,16 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ isOpen, onClose }) => 
             <span className="px-1.5 py-0.2 rounded-full bg-amber-700 text-white text-[10px] font-bold">
               {bookings.length}
             </span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('security')}
+            className={`px-3.5 py-1.5 rounded-lg transition-colors whitespace-nowrap flex items-center gap-1.5 ${
+              activeTab === 'security' ? 'bg-white text-stone-900 shadow-xs font-bold' : 'text-stone-600 hover:text-stone-900'
+            }`}
+          >
+            <ShieldCheck className="w-3.5 h-3.5 text-amber-700" />
+            <span>Security & Visibility</span>
           </button>
 
           <button
@@ -1073,6 +1197,151 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ isOpen, onClose }) => 
                   ))}
                 </div>
               )}
+            </div>
+          )}
+
+          {/* TAB: SECURITY & DEPLOYMENT VISIBILITY SETTINGS */}
+          {activeTab === 'security' && (
+            <div className="space-y-6 max-w-3xl">
+              <div>
+                <h4 className="text-sm font-bold text-stone-900 mb-1">Admin Portal Security & Visibility Controls</h4>
+                <p className="text-xs text-stone-500">
+                  Control how the "Admin CMS" link appears to regular guests during deployment, change your passcode, and manage secret access.
+                </p>
+              </div>
+
+              {/* 1. Header Visibility Control */}
+              <div className="p-5 bg-stone-50 rounded-2xl border border-stone-200 space-y-4 text-xs">
+                <div className="flex items-center gap-2">
+                  <Eye className="w-4 h-4 text-amber-700" />
+                  <h5 className="font-bold text-stone-900 text-sm">Top Navigation Link Visibility in Production</h5>
+                </div>
+                <p className="text-stone-600">
+                  Choose whether ordinary hotel guests visiting your website can see the "Admin CMS" button in the top bar:
+                </p>
+
+                <div className="space-y-3 pt-1">
+                  <label className="flex items-start gap-3 p-3 bg-white rounded-xl border border-stone-200 cursor-pointer hover:border-amber-400 transition-colors">
+                    <input
+                      type="radio"
+                      name="headerVisibility"
+                      checked={adminHeaderVisibility === 'authenticated_only'}
+                      onChange={() => {
+                        setAdminHeaderVisibility('authenticated_only');
+                        triggerToast('Updated: Admin CMS button is now only visible after staff signs in.');
+                      }}
+                      className="mt-0.5 text-amber-600 focus:ring-amber-500"
+                    />
+                    <div>
+                      <span className="font-bold text-stone-900 block">
+                        Visible Only When Staff Is Signed In (Recommended for Deployment)
+                      </span>
+                      <span className="text-[11px] text-stone-500 leading-relaxed block mt-0.5">
+                        Normal website guests browsing the hotel will never see the "Admin CMS" button. Once staff unlocks the portal via the footer or shortcut, the button becomes visible during their session.
+                      </span>
+                    </div>
+                  </label>
+
+                  <label className="flex items-start gap-3 p-3 bg-white rounded-xl border border-stone-200 cursor-pointer hover:border-amber-400 transition-colors">
+                    <input
+                      type="radio"
+                      name="headerVisibility"
+                      checked={adminHeaderVisibility === 'hidden'}
+                      onChange={() => {
+                        setAdminHeaderVisibility('hidden');
+                        triggerToast('Updated: Admin CMS button is completely hidden from the header.');
+                      }}
+                      className="mt-0.5 text-amber-600 focus:ring-amber-500"
+                    />
+                    <div>
+                      <span className="font-bold text-stone-900 block">
+                        Completely Hidden from Top Bar (Stealth Mode)
+                      </span>
+                      <span className="text-[11px] text-stone-500 leading-relaxed block mt-0.5">
+                        Never show the Admin button in the header. Only reachable by clicking "Staff & Management" in the footer, or using the secret keyboard shortcut.
+                      </span>
+                    </div>
+                  </label>
+
+                  <label className="flex items-start gap-3 p-3 bg-white rounded-xl border border-stone-200 cursor-pointer hover:border-amber-400 transition-colors">
+                    <input
+                      type="radio"
+                      name="headerVisibility"
+                      checked={adminHeaderVisibility === 'always'}
+                      onChange={() => {
+                        setAdminHeaderVisibility('always');
+                        triggerToast('Updated: Admin CMS button is always visible.');
+                      }}
+                      className="mt-0.5 text-amber-600 focus:ring-amber-500"
+                    />
+                    <div>
+                      <span className="font-bold text-stone-900 block">
+                        Always Visible in Top Bar (Testing & Development Mode)
+                      </span>
+                      <span className="text-[11px] text-stone-500 leading-relaxed block mt-0.5">
+                        Keeps the "Admin CMS" button permanently visible in the header for easy demonstration.
+                      </span>
+                    </div>
+                  </label>
+                </div>
+              </div>
+
+              {/* 2. Change Passcode */}
+              <div className="p-5 bg-stone-50 rounded-2xl border border-stone-200 space-y-4 text-xs">
+                <div className="flex items-center gap-2">
+                  <Key className="w-4 h-4 text-amber-700" />
+                  <h5 className="font-bold text-stone-900 text-sm">Change Admin / Staff Passcode</h5>
+                </div>
+                <p className="text-stone-600">
+                  Update the password required to unlock the Admin Portal:
+                </p>
+
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                  <input
+                    type="password"
+                    placeholder="Enter new passcode..."
+                    value={newPassInput}
+                    onChange={(e) => setNewPassInput(e.target.value)}
+                    className="flex-1 bg-white border border-stone-300 rounded-xl px-3 py-2 text-xs font-mono text-stone-900 focus:outline-hidden focus:ring-2 focus:ring-amber-600"
+                  />
+                  <button
+                    onClick={() => {
+                      if (!newPassInput.trim() || newPassInput.trim().length < 4) {
+                        alert('Passcode must be at least 4 characters.');
+                        return;
+                      }
+                      changeAdminPassword(newPassInput.trim());
+                      setNewPassInput('');
+                      triggerToast('Admin passcode updated successfully!');
+                    }}
+                    className="px-4 py-2 bg-amber-700 hover:bg-amber-800 text-white font-bold rounded-xl whitespace-nowrap shadow-sm"
+                  >
+                    Save New Passcode
+                  </button>
+                </div>
+              </div>
+
+              {/* 3. Secret Access Methods */}
+              <div className="p-5 bg-amber-50/70 border border-amber-200 rounded-2xl space-y-3 text-xs text-amber-950">
+                <div className="flex items-center gap-2 font-bold text-sm text-amber-900">
+                  <HelpCircle className="w-4 h-4 text-amber-700" />
+                  <span>How Staff Accesses the Admin Portal When Hidden:</span>
+                </div>
+                <ul className="space-y-2 text-[11px] text-stone-700 pl-1">
+                  <li className="flex items-start gap-2">
+                    <span className="font-bold text-amber-800">1. Secret Keyboard Shortcut:</span>
+                    <span>Press <kbd className="bg-white px-1.5 py-0.5 rounded border border-stone-300 font-mono font-bold text-stone-900">Alt + A</kbd> (or <kbd className="bg-white px-1.5 py-0.5 rounded border border-stone-300 font-mono font-bold text-stone-900">Ctrl + Shift + A</kbd>) anywhere on the website to open the login screen.</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="font-bold text-amber-800">2. Secret URL Query:</span>
+                    <span>Type <code className="bg-white px-1.5 py-0.5 rounded border border-stone-300 font-mono font-bold text-stone-900">?admin</code> at the end of the web address (e.g. <code className="text-amber-900 font-semibold">https://touristhotelarbaminch.com/?admin</code>).</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="font-bold text-amber-800">3. Discreet Footer Link:</span>
+                    <span>Click the small <code className="font-semibold text-stone-900">Staff & Management</code> link at the very bottom of the website footer.</span>
+                  </li>
+                </ul>
+              </div>
             </div>
           )}
 

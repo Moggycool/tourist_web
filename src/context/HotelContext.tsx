@@ -42,6 +42,12 @@ interface HotelContextType {
   setIsAdminOpen: (open: boolean) => void;
   isAdminAuthenticated: boolean;
   setIsAdminAuthenticated: (auth: boolean) => void;
+  adminPassword: string;
+  authenticateAdmin: (pass: string) => boolean;
+  logoutAdmin: () => void;
+  changeAdminPassword: (newPass: string) => void;
+  adminHeaderVisibility: 'always' | 'authenticated_only' | 'hidden';
+  setAdminHeaderVisibility: (val: 'always' | 'authenticated_only' | 'hidden') => void;
 
   selectedRoomForBooking: Room | null;
   setSelectedRoomForBooking: (room: Room | null) => void;
@@ -146,7 +152,91 @@ export const HotelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const [currency, setCurrency] = useState<Currency>('ETB');
   const [isAdminOpen, setIsAdminOpen] = useState<boolean>(false);
-  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState<boolean>(false);
+  
+  // Admin password & session auth
+  const [adminPassword, setAdminPassword] = useState<string>(() => {
+    try {
+      return localStorage.getItem(`${STORAGE_KEY}_pwd`) || 'tourist2026';
+    } catch {
+      return 'tourist2026';
+    }
+  });
+
+  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState<boolean>(() => {
+    try {
+      return sessionStorage.getItem(`${STORAGE_KEY}_auth`) === 'true';
+    } catch {
+      return false;
+    }
+  });
+
+  // Admin button visibility: 'authenticated_only' (hidden from guests during deployment)
+  const [adminHeaderVisibility, setAdminHeaderVisibility] = useState<'always' | 'authenticated_only' | 'hidden'>(() => {
+    try {
+      return (localStorage.getItem(`${STORAGE_KEY}_header_vis`) as any) || 'authenticated_only';
+    } catch {
+      return 'authenticated_only';
+    }
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(`${STORAGE_KEY}_header_vis`, adminHeaderVisibility);
+    } catch (e) {
+      console.warn('Storage error', e);
+    }
+  }, [adminHeaderVisibility]);
+
+  useEffect(() => {
+    try {
+      sessionStorage.setItem(`${STORAGE_KEY}_auth`, isAdminAuthenticated ? 'true' : 'false');
+    } catch (e) {
+      console.warn('Storage error', e);
+    }
+  }, [isAdminAuthenticated]);
+
+  // URL trigger (?admin) and keyboard shortcut (Alt + A) for secret admin access
+  useEffect(() => {
+    // Check URL query parameters (?admin=1 or #admin)
+    if (typeof window !== 'undefined') {
+      const searchParams = new URLSearchParams(window.location.search);
+      if (searchParams.has('admin') || window.location.hash === '#admin') {
+        setIsAdminOpen(true);
+      }
+    }
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Secret key combination: Alt + A or Ctrl + Shift + A
+      if ((e.altKey && (e.key === 'a' || e.key === 'A')) || (e.ctrlKey && e.shiftKey && (e.key === 'A' || e.key === 'a'))) {
+        e.preventDefault();
+        setIsAdminOpen(prev => !prev);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  const authenticateAdmin = (pass: string): boolean => {
+    if (pass === adminPassword) {
+      setIsAdminAuthenticated(true);
+      return true;
+    }
+    return false;
+  };
+
+  const logoutAdmin = () => {
+    setIsAdminAuthenticated(false);
+  };
+
+  const changeAdminPassword = (newPass: string) => {
+    setAdminPassword(newPass);
+    try {
+      localStorage.setItem(`${STORAGE_KEY}_pwd`, newPass);
+    } catch (e) {
+      console.warn('Storage error', e);
+    }
+  };
 
   const [selectedRoomForBooking, setSelectedRoomForBooking] = useState<Room | null>(null);
   const [selectedRoomForDetail, setSelectedRoomForDetail] = useState<Room | null>(null);
@@ -356,6 +446,12 @@ export const HotelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         setIsAdminOpen,
         isAdminAuthenticated,
         setIsAdminAuthenticated,
+        adminPassword,
+        authenticateAdmin,
+        logoutAdmin,
+        changeAdminPassword,
+        adminHeaderVisibility,
+        setAdminHeaderVisibility,
         selectedRoomForBooking,
         setSelectedRoomForBooking,
         selectedRoomForDetail,

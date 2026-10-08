@@ -109,10 +109,10 @@ export const Footer: React.FC<FooterProps> = ({ onNavClick }) => {
           <div className="flex items-center gap-4">
             <button
               onClick={() => setIsAdminOpen(true)}
-              className="text-stone-400 hover:text-amber-400 flex items-center gap-1 font-semibold transition-colors"
+              className="text-stone-500 hover:text-amber-400 flex items-center gap-1 font-medium transition-colors"
             >
-              <Lock className="w-3 h-3 text-amber-500" />
-              <span>Admin Management Portal</span>
+              <Lock className="w-3 h-3 text-stone-500 hover:text-amber-400" />
+              <span>Staff & Management</span>
             </button>
             <span>·</span>
             <span>Privacy Policy</span>
