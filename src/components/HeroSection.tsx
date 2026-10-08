@@ -7,7 +7,7 @@ interface HeroSectionProps {
 }
 
 export const HeroSection: React.FC<HeroSectionProps> = ({ onCheckAvailability }) => {
-  const { hotelInfo, rooms } = useHotel();
+  const { hotelInfo, rooms, t } = useHotel();
 
   const [checkIn, setCheckIn] = useState<string>('2026-10-10');
   const [checkOut, setCheckOut] = useState<string>('2026-10-13');
@@ -43,17 +43,16 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onCheckAvailability })
         
         {/* Subtitle location badge */}
         <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-400/30 text-xs font-semibold tracking-wider uppercase mb-6 backdrop-blur-md">
-          <span>Arba Minch · Southern Ethiopia</span>
+          <span>{t('hero_badge')}</span>
         </div>
 
         {/* Headline */}
         <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-white mb-6 max-w-4xl mx-auto leading-tight">
-          Where Natural Wonder Meets <br className="hidden sm:inline" />
-          <span className="text-amber-400 font-serif italic">Ethiopian Hospitality</span>
+          {t('hero_title')}
         </h1>
 
         <p className="text-sm sm:text-base lg:text-lg text-stone-200 max-w-2xl mx-auto font-normal mb-10 leading-relaxed">
-          Wake up to panoramic views of Lake Chamo and Lake Abaya. Experience comfortable rooms, authentic traditional cuisine, and guided safaris to the crocodile market and Dorze highlands.
+          {t('hero_subtitle')}
         </p>
 
         {/* Interactive Booking Reservation Bar (like Saro Hotel) */}
@@ -64,7 +63,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onCheckAvailability })
             <div className="sm:col-span-3">
               <label className="block text-[11px] font-bold text-stone-600 uppercase tracking-wider mb-1 flex items-center gap-1.5">
                 <Calendar className="w-3.5 h-3.5 text-amber-700" />
-                <span>Check-In</span>
+                <span>{t('hero_check_in')}</span>
               </label>
               <input
                 type="date"
@@ -79,7 +78,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onCheckAvailability })
             <div className="sm:col-span-3">
               <label className="block text-[11px] font-bold text-stone-600 uppercase tracking-wider mb-1 flex items-center gap-1.5">
                 <Calendar className="w-3.5 h-3.5 text-amber-700" />
-                <span>Check-Out</span>
+                <span>{t('hero_check_out')}</span>
               </label>
               <input
                 type="date"
@@ -94,7 +93,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onCheckAvailability })
             <div className="sm:col-span-3">
               <label className="block text-[11px] font-bold text-stone-600 uppercase tracking-wider mb-1 flex items-center gap-1.5">
                 <BedDouble className="w-3.5 h-3.5 text-amber-700" />
-                <span>Room Type</span>
+                <span>{t('rooms_section_title')}</span>
               </label>
               <select
                 aria-label="Room Category"
@@ -102,7 +101,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onCheckAvailability })
                 onChange={(e) => setRoomCategory(e.target.value)}
                 className="w-full bg-stone-50 border border-stone-300 rounded-lg px-3 py-2 text-xs font-semibold text-stone-900 focus:outline-hidden focus:ring-2 focus:ring-amber-600 cursor-pointer"
               >
-                <option value="all">All Available Rooms</option>
+                <option value="all">{t('rooms_all')}</option>
                 {rooms.map(r => (
                   <option key={r.id} value={r.id}>{r.name}</option>
                 ))}
@@ -113,9 +112,9 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onCheckAvailability })
             <div className="sm:col-span-3">
               <button
                 type="submit"
-                className="w-full h-10 bg-amber-700 hover:bg-amber-800 active:bg-amber-900 text-white font-bold text-xs rounded-lg transition-all shadow-md flex items-center justify-center gap-2"
+                className="w-full h-10 bg-amber-700 hover:bg-amber-800 active:bg-amber-900 text-white font-bold text-xs rounded-lg transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
               >
-                <span>Check Availability</span>
+                <span>{t('hero_search_btn')}</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
             </div>
@@ -127,19 +126,19 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onCheckAvailability })
         <div className="mt-12 pt-8 border-t border-stone-800/80 grid grid-cols-2 md:grid-cols-4 gap-4 text-xs text-stone-300">
           <div className="flex items-center justify-center gap-2">
             <Waves className="w-4 h-4 text-amber-400" />
-            <span>Overlooking Lake Chamo & Abaya</span>
+            <span>{t('hero_feature_lakes')}</span>
           </div>
           <div className="flex items-center justify-center gap-2">
             <Car className="w-4 h-4 text-amber-400" />
-            <span>Complimentary Airport Pickup</span>
+            <span>{t('hero_feature_shuttle')}</span>
           </div>
           <div className="flex items-center justify-center gap-2">
             <Coffee className="w-4 h-4 text-amber-400" />
-            <span>Daily Traditional Coffee Ceremony</span>
+            <span>{t('hero_feature_buna')}</span>
           </div>
           <div className="flex items-center justify-center gap-2">
             <ShieldCheck className="w-4 h-4 text-amber-400" />
-            <span>24/7 Power Backup & Hot Springs</span>
+            <span>{t('hero_feature_food')}</span>
           </div>
         </div>
 

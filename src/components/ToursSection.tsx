@@ -8,7 +8,7 @@ interface ToursSectionProps {
 }
 
 export const ToursSection: React.FC<ToursSectionProps> = ({ onBookTour }) => {
-  const { tours, formatPrice } = useHotel();
+  const { tours, formatPrice, t } = useHotel();
   const [selectedTour, setSelectedTour] = useState<TourPackage | null>(null);
 
   return (
@@ -18,13 +18,13 @@ export const ToursSection: React.FC<ToursSectionProps> = ({ onBookTour }) => {
         {/* Header */}
         <div className="space-y-2 max-w-2xl">
           <span className="text-xs font-bold uppercase tracking-wider text-amber-800">
-            Adventures & Wildlife
+            {t('tours_badge')}
           </span>
           <h2 className="text-3xl sm:text-4xl font-extrabold text-stone-900 tracking-tight">
-            Arba Minch Excursions & Safaris
+            {t('tours_title')}
           </h2>
           <p className="text-sm text-stone-600 leading-relaxed">
-            Directly arranged by Tourist Hotel's dedicated tour desk. Professional 4x4 vehicles, licensed English/Amharic speaking guides, and priority boat permits on Lake Chamo.
+            {t('tours_subtitle')}
           </p>
         </div>
 
@@ -93,9 +93,9 @@ export const ToursSection: React.FC<ToursSectionProps> = ({ onBookTour }) => {
 
                 <button
                   onClick={() => onBookTour(tour)}
-                  className="px-4.5 py-2.5 bg-amber-700 hover:bg-amber-800 active:bg-amber-900 text-white text-xs font-bold rounded-xl shadow-xs transition-all flex items-center gap-1.5"
+                  className="px-4.5 py-2.5 bg-amber-700 hover:bg-amber-800 active:bg-amber-900 text-white text-xs font-bold rounded-xl shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
                 >
-                  <span>Book Excursion</span>
+                  <span>{t('tours_book_excursion')}</span>
                   <ArrowRight className="w-3.5 h-3.5" />
                 </button>
               </div>

@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { HotelInfo, Room, TourPackage, MenuItem, ConferenceHall, RoomBooking, HotelEvent, Currency, TelebirrMerchantConfig, NotificationLog } from '../types';
+import { HotelInfo, Room, TourPackage, MenuItem, ConferenceHall, RoomBooking, HotelEvent, Currency, Language, TelebirrMerchantConfig, NotificationLog } from '../types';
 import { INITIAL_HOTEL_INFO, INITIAL_ROOMS, INITIAL_TOURS, INITIAL_MENU_ITEMS, INITIAL_CONFERENCE_HALLS, INITIAL_EVENTS, INITIAL_TELEBIRR_CONFIG, INITIAL_NOTIFICATIONS } from '../data/hotelData';
+import { TRANSLATIONS } from '../data/translations';
 
 interface HotelContextType {
   hotelInfo: HotelInfo;
@@ -37,6 +38,10 @@ interface HotelContextType {
   currency: Currency;
   setCurrency: (c: Currency) => void;
   formatPrice: (amountETB: number, amountUSD?: number) => string;
+
+  language: Language;
+  setLanguage: (lang: Language) => void;
+  t: (key: string) => string;
 
   isAdminOpen: boolean;
   setIsAdminOpen: (open: boolean) => void;
@@ -160,6 +165,15 @@ export const HotelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   });
 
   const [currency, setCurrency] = useState<Currency>('ETB');
+  const [language, setLanguage] = useState<Language>(() => {
+    try {
+      const saved = localStorage.getItem(`${STORAGE_KEY}_lang`);
+      return (saved === 'am' || saved === 'en') ? saved : 'en';
+    } catch {
+      return 'en';
+    }
+  });
+
   const [isAdminOpen, setIsAdminOpen] = useState<boolean>(false);
   
   // Telebirr Merchant configuration
@@ -336,6 +350,19 @@ export const HotelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       console.warn('Storage error', e);
     }
   }, [notifications]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(`${STORAGE_KEY}_lang`, language);
+    } catch (e) {
+      console.warn('Storage error', e);
+    }
+  }, [language]);
+
+  const t = (key: string): string => {
+    const dict = TRANSLATIONS[language] || TRANSLATIONS.en;
+    return (dict as any)[key] || (TRANSLATIONS.en as any)[key] || key;
+  };
 
   // Price Formatter
   const formatPrice = (amountETB: number, amountUSD?: number): string => {
@@ -559,6 +586,9 @@ export const HotelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         currency,
         setCurrency,
         formatPrice,
+        language,
+        setLanguage,
+        t,
         isAdminOpen,
         setIsAdminOpen,
         isAdminAuthenticated,

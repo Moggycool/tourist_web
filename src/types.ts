@@ -1,4 +1,5 @@
 export type Currency = 'ETB' | 'USD';
+export type Language = 'en' | 'am';
 
 export interface Room {
   id: string;

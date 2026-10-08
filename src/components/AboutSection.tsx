@@ -3,7 +3,7 @@ import { MapPin, Phone, Mail, Clock, Car, Compass, Waves, Trees } from 'lucide-r
 import { useHotel } from '../context/HotelContext';
 
 export const AboutSection: React.FC = () => {
-  const { hotelInfo } = useHotel();
+  const { hotelInfo, t } = useHotel();
 
   const distances = [
     { name: 'Arba Minch Domestic Airport (AMH)', time: '10 Mins Drive', desc: 'Daily Ethiopian Airlines flights from Addis Ababa' },
@@ -20,10 +20,10 @@ export const AboutSection: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
           <div className="lg:col-span-6 space-y-4">
             <span className="text-xs font-bold uppercase tracking-wider text-amber-800">
-              The Story & Heritage
+              {t('about_badge')}
             </span>
             <h2 className="text-3xl sm:text-4xl font-extrabold text-stone-900 tracking-tight">
-              A Warm Sanctuary in Arba Minch
+              {t('about_title')}
             </h2>
             <p className="text-sm text-stone-700 leading-relaxed">
               Arba Minch takes its name from the legendary Amharic words meaning <em>"Forty Springs"</em>, celebrating the dozens of natural crystalline springs bubbling up from the floor of the Rift Valley forest.
@@ -35,14 +35,14 @@ export const AboutSection: React.FC = () => {
             <div className="grid grid-cols-2 gap-4 pt-2">
               <div className="p-4 bg-white rounded-2xl border border-stone-200 shadow-xs">
                 <Waves className="w-5 h-5 text-amber-700 mb-1" />
-                <h4 className="text-xs font-bold text-stone-900">Rift Valley Lakes</h4>
-                <p className="text-[11px] text-stone-500">Perched with views toward Lake Chamo and Abaya.</p>
+                <h4 className="text-xs font-bold text-stone-900">{t('about_location_card')}</h4>
+                <p className="text-[11px] text-stone-500">{t('about_location_desc')}</p>
               </div>
 
               <div className="p-4 bg-white rounded-2xl border border-stone-200 shadow-xs">
                 <Trees className="w-5 h-5 text-amber-700 mb-1" />
-                <h4 className="text-xs font-bold text-stone-900">Tranquil Gardens</h4>
-                <p className="text-[11px] text-stone-500">Bougainvillea paths, mango trees, and quiet seating.</p>
+                <h4 className="text-xs font-bold text-stone-900">{t('about_hours_card')}</h4>
+                <p className="text-[11px] text-stone-500">{t('about_hours_desc')}</p>
               </div>
             </div>
           </div>

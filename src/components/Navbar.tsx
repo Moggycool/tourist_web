@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Menu, X, Phone, Lock, CalendarCheck } from 'lucide-react';
+import { Menu, X, Phone, Lock, CalendarCheck, Globe } from 'lucide-react';
 import { useHotel } from '../context/HotelContext';
 
 interface NavbarProps {
@@ -13,6 +13,9 @@ export const Navbar: React.FC<NavbarProps> = ({ onBookClick, activeSection, setA
     hotelInfo,
     currency,
     setCurrency,
+    language,
+    setLanguage,
+    t,
     setIsAdminOpen,
     bookings,
     isAdminAuthenticated,
@@ -25,12 +28,12 @@ export const Navbar: React.FC<NavbarProps> = ({ onBookClick, activeSection, setA
     (adminHeaderVisibility === 'authenticated_only' && isAdminAuthenticated);
 
   const navLinks = [
-    { id: 'rooms', label: 'Rooms & Suites' },
-    { id: 'dining', label: 'Dining & Coffee' },
-    { id: 'tours', label: 'Tours & Safaris' },
-    { id: 'events', label: 'Events & Media' },
-    { id: 'meetings', label: 'Conferences' },
-    { id: 'about', label: 'About & Location' },
+    { id: 'rooms', label: t('nav_rooms') },
+    { id: 'dining', label: t('nav_dining') },
+    { id: 'tours', label: t('nav_tours') },
+    { id: 'events', label: t('nav_events') },
+    { id: 'meetings', label: t('nav_meetings') },
+    { id: 'about', label: t('nav_about') },
   ];
 
   const handleNavClick = (id: string) => {
@@ -55,10 +58,35 @@ export const Navbar: React.FC<NavbarProps> = ({ onBookClick, activeSection, setA
             </span>
           </div>
           <div className="flex items-center gap-3">
-            <span className="text-stone-400 hidden md:inline">24/7 Front Desk · Free Airport Transfer</span>
+            <span className="text-stone-400 hidden md:inline">{t('nav_airport_transfer')}</span>
+
+            {/* Language toggle: EN | አማርኛ */}
+            <div className="flex items-center gap-1 bg-stone-800 px-2 py-0.5 rounded text-white">
+              <Globe className="w-3 h-3 text-amber-400" />
+              <button
+                onClick={() => setLanguage('en')}
+                className={`px-1 font-bold transition-colors ${
+                  language === 'en' ? 'text-amber-400 underline' : 'text-stone-400 hover:text-white'
+                }`}
+                title="English"
+              >
+                EN
+              </button>
+              <span className="text-stone-500">|</span>
+              <button
+                onClick={() => setLanguage('am')}
+                className={`px-1 font-bold transition-colors ${
+                  language === 'am' ? 'text-amber-400 underline' : 'text-stone-400 hover:text-white'
+                }`}
+                title="አማርኛ (Amharic)"
+              >
+                አማርኛ
+              </button>
+            </div>
+
             {/* Currency toggle */}
             <div className="flex items-center gap-1 bg-stone-800 px-2 py-0.5 rounded text-white">
-              <span className="text-stone-400">Currency:</span>
+              <span className="text-stone-400">{t('nav_currency')}:</span>
               <button
                 onClick={() => setCurrency('ETB')}
                 className={`px-1 font-bold ${currency === 'ETB' ? 'text-amber-400 underline' : 'text-stone-300'}`}
@@ -135,10 +163,10 @@ export const Navbar: React.FC<NavbarProps> = ({ onBookClick, activeSection, setA
           <div className="flex items-center gap-3">
             <button
               onClick={onBookClick}
-              className="px-4.5 py-2.5 bg-amber-700 hover:bg-amber-800 active:bg-amber-900 text-white text-xs font-bold rounded-lg shadow-sm transition-all flex items-center gap-1.5 whitespace-nowrap"
+              className="px-4.5 py-2.5 bg-amber-700 hover:bg-amber-800 active:bg-amber-900 text-white text-xs font-bold rounded-lg shadow-sm transition-all flex items-center gap-1.5 whitespace-nowrap cursor-pointer"
             >
               <CalendarCheck className="w-4 h-4" />
-              <span>Book Your Stay</span>
+              <span>{t('nav_book_stay')}</span>
             </button>
 
             {/* Mobile menu trigger */}
@@ -155,7 +183,33 @@ export const Navbar: React.FC<NavbarProps> = ({ onBookClick, activeSection, setA
 
       {/* Mobile Drawer */}
       {mobileMenuOpen && (
-        <div className="lg:hidden bg-white border-b border-stone-200 px-5 pt-3 pb-6 space-y-3 shadow-lg">
+        <div className="lg:hidden bg-white border-b border-stone-200 px-5 pt-3 pb-6 space-y-4 shadow-lg">
+          {/* Mobile Language Switcher */}
+          <div className="flex items-center justify-between p-2.5 bg-stone-100 rounded-xl text-xs">
+            <span className="font-bold text-stone-600 flex items-center gap-1.5">
+              <Globe className="w-3.5 h-3.5 text-amber-700" />
+              <span>{t('nav_lang')}:</span>
+            </span>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => setLanguage('en')}
+                className={`px-2.5 py-1 rounded-lg text-xs font-bold ${
+                  language === 'en' ? 'bg-amber-700 text-white' : 'text-stone-700'
+                }`}
+              >
+                English
+              </button>
+              <button
+                onClick={() => setLanguage('am')}
+                className={`px-2.5 py-1 rounded-lg text-xs font-bold ${
+                  language === 'am' ? 'bg-amber-700 text-white' : 'text-stone-700'
+                }`}
+              >
+                አማርኛ
+              </button>
+            </div>
+          </div>
+
           <div className="space-y-1">
             {navLinks.map((link) => (
               <button
@@ -187,9 +241,9 @@ export const Navbar: React.FC<NavbarProps> = ({ onBookClick, activeSection, setA
                 setMobileMenuOpen(false);
                 onBookClick();
               }}
-              className="px-4 py-2 bg-amber-700 text-white rounded-lg text-xs font-bold"
+              className="px-4 py-2 bg-amber-700 text-white rounded-lg text-xs font-bold cursor-pointer"
             >
-              Book Room
+              {t('nav_book_stay')}
             </button>
           </div>
         </div>

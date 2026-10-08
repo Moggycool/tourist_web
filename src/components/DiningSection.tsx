@@ -3,7 +3,7 @@ import { Coffee, Utensils, Sparkles, Wine, Flame } from 'lucide-react';
 import { useHotel } from '../context/HotelContext';
 
 export const DiningSection: React.FC = () => {
-  const { menuItems, formatPrice, hotelInfo } = useHotel();
+  const { menuItems, formatPrice, hotelInfo, t } = useHotel();
   const [activeCategory, setActiveCategory] = useState<'all' | 'traditional' | 'international' | 'beverages'>('all');
 
   const filteredMenu = activeCategory === 'all'
@@ -11,10 +11,10 @@ export const DiningSection: React.FC = () => {
     : menuItems.filter(m => m.category === activeCategory);
 
   const categories = [
-    { id: 'all', label: 'Complete Menu' },
-    { id: 'traditional', label: 'Traditional Ethiopian' },
-    { id: 'international', label: 'Continental & Italian' },
-    { id: 'beverages', label: 'Coffee Ceremony & Bar' },
+    { id: 'all', label: 'All' },
+    { id: 'traditional', label: 'Traditional' },
+    { id: 'international', label: 'International' },
+    { id: 'beverages', label: 'Coffee & Drinks' },
   ];
 
   return (
@@ -25,13 +25,13 @@ export const DiningSection: React.FC = () => {
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-stone-200 pb-6">
           <div className="space-y-2">
             <span className="text-xs font-bold uppercase tracking-wider text-amber-800">
-              Gastronomy & Traditions
+              {t('dining_badge')}
             </span>
             <h2 className="text-3xl sm:text-4xl font-extrabold text-stone-900 tracking-tight">
-              Dining & Coffee Experience
+              {t('dining_title')}
             </h2>
             <p className="text-sm text-stone-600 max-w-xl">
-              Savor fresh catch from Lake Chamo, sizzling Ethiopian clay pot tibs, and the world-renowned traditional Buna coffee ceremony on our garden terrace.
+              {t('dining_subtitle')}
             </p>
           </div>
 
@@ -43,7 +43,7 @@ export const DiningSection: React.FC = () => {
                 onClick={() => setActiveCategory(cat.id as any)}
                 className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors whitespace-nowrap ${
                   activeCategory === cat.id
-                    ? 'bg-white text-stone-900 shadow-xs'
+                    ? 'bg-white text-stone-900 shadow-xs font-bold'
                     : 'text-stone-600 hover:text-stone-950'
                 }`}
               >

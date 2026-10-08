@@ -3,7 +3,7 @@ import { Users, Presentation, CheckCircle, Mail, Phone, CalendarCheck } from 'lu
 import { useHotel } from '../context/HotelContext';
 
 export const ConferenceSection: React.FC = () => {
-  const { conferenceHalls, hotelInfo } = useHotel();
+  const { conferenceHalls, hotelInfo, t } = useHotel();
   const [inquirySubmitted, setInquirySubmitted] = useState(false);
   const [hallName, setHallName] = useState('Abaya Grand Conference Hall');
   const [eventDate, setEventDate] = useState('2026-11-15');
@@ -28,13 +28,13 @@ export const ConferenceSection: React.FC = () => {
         {/* Header */}
         <div className="space-y-2 max-w-2xl">
           <span className="text-xs font-bold uppercase tracking-wider text-amber-800">
-            Events & Corporate Summits
+            {t('conf_badge')}
           </span>
           <h2 className="text-3xl sm:text-4xl font-extrabold text-stone-900 tracking-tight">
-            Meetings & Conference Facilities
+            {t('conf_title')}
           </h2>
           <p className="text-sm text-stone-600 leading-relaxed">
-            Host your government summits, corporate training retreats, NGO workshops, and wedding receptions in Arba Minch with comprehensive audiovisual technology and dedicated banquet service.
+            {t('conf_subtitle')}
           </p>
         </div>
 

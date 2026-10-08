@@ -7,7 +7,7 @@ interface FooterProps {
 }
 
 export const Footer: React.FC<FooterProps> = ({ onNavClick }) => {
-  const { hotelInfo, setIsAdminOpen } = useHotel();
+  const { hotelInfo, setIsAdminOpen, t } = useHotel();
 
   return (
     <footer className="bg-stone-950 text-stone-400 border-t border-stone-800 text-xs">
@@ -34,31 +34,31 @@ export const Footer: React.FC<FooterProps> = ({ onNavClick }) => {
 
           {/* Quick Links */}
           <div className="space-y-3">
-            <h4 className="text-xs font-bold text-white uppercase tracking-wider">Hotel Navigation</h4>
+            <h4 className="text-xs font-bold text-white uppercase tracking-wider">{t('footer_quick_links')}</h4>
             <ul className="space-y-2">
               <li>
-                <button onClick={() => onNavClick('rooms')} className="hover:text-white transition-colors">
-                  Rooms & Executive Suites
+                <button onClick={() => onNavClick('rooms')} className="hover:text-white transition-colors cursor-pointer">
+                  {t('nav_rooms')}
                 </button>
               </li>
               <li>
-                <button onClick={() => onNavClick('dining')} className="hover:text-white transition-colors">
-                  Restaurant & Buna Ceremony
+                <button onClick={() => onNavClick('dining')} className="hover:text-white transition-colors cursor-pointer">
+                  {t('nav_dining')}
                 </button>
               </li>
               <li>
-                <button onClick={() => onNavClick('tours')} className="hover:text-white transition-colors">
-                  Lake Chamo Boat Safaris
+                <button onClick={() => onNavClick('tours')} className="hover:text-white transition-colors cursor-pointer">
+                  {t('nav_tours')}
                 </button>
               </li>
               <li>
-                <button onClick={() => onNavClick('meetings')} className="hover:text-white transition-colors">
-                  Conference & Banquet Halls
+                <button onClick={() => onNavClick('meetings')} className="hover:text-white transition-colors cursor-pointer">
+                  {t('nav_meetings')}
                 </button>
               </li>
               <li>
-                <button onClick={() => onNavClick('about')} className="hover:text-white transition-colors">
-                  About Arba Minch & Forty Springs
+                <button onClick={() => onNavClick('about')} className="hover:text-white transition-colors cursor-pointer">
+                  {t('nav_about')}
                 </button>
               </li>
             </ul>
@@ -104,15 +104,15 @@ export const Footer: React.FC<FooterProps> = ({ onNavClick }) => {
 
         {/* Bottom Line */}
         <div className="pt-8 border-t border-stone-800/80 flex flex-col sm:flex-row items-center justify-between gap-4 text-stone-500 text-[11px]">
-          <p>© {new Date().getFullYear()} {hotelInfo.name}, Arba Minch, Ethiopia. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} {hotelInfo.name}, Arba Minch, Ethiopia. {t('footer_rights')}</p>
           
           <div className="flex items-center gap-4">
             <button
               onClick={() => setIsAdminOpen(true)}
-              className="text-stone-500 hover:text-amber-400 flex items-center gap-1 font-medium transition-colors"
+              className="text-stone-500 hover:text-amber-400 flex items-center gap-1 font-medium transition-colors cursor-pointer"
             >
               <Lock className="w-3 h-3 text-stone-500 hover:text-amber-400" />
-              <span>Staff & Management</span>
+              <span>{t('footer_staff')}</span>
             </button>
             <span>·</span>
             <span>Privacy Policy</span>

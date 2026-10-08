@@ -8,7 +8,7 @@ interface EventsSectionProps {
 }
 
 export const EventsSection: React.FC<EventsSectionProps> = ({ onSelectEvent }) => {
-  const { events, setIsAdminOpen } = useHotel();
+  const { events, setIsAdminOpen, t } = useHotel();
   const [filter, setFilter] = useState<'all' | 'video' | 'image' | 'cultural' | 'safari'>('all');
 
   const filteredEvents = events.filter((evt) => {
@@ -21,11 +21,11 @@ export const EventsSection: React.FC<EventsSectionProps> = ({ onSelectEvent }) =
   });
 
   const filterTabs = [
-    { id: 'all', label: 'All Events & Highlights' },
-    { id: 'video', label: 'Video Reels 🎬' },
-    { id: 'image', label: 'Photo Galleries 📸' },
-    { id: 'cultural', label: 'Cultural Festivals' },
-    { id: 'safari', label: 'Lake & Safari Media' },
+    { id: 'all', label: t('events_all') },
+    { id: 'video', label: t('events_videos') },
+    { id: 'image', label: t('events_photos') },
+    { id: 'cultural', label: t('events_cultural') },
+    { id: 'safari', label: t('events_safari') },
   ];
 
   return (
@@ -36,13 +36,13 @@ export const EventsSection: React.FC<EventsSectionProps> = ({ onSelectEvent }) =
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-stone-200 pb-6">
           <div className="space-y-2">
             <span className="text-xs font-bold uppercase tracking-wider text-amber-800">
-              Live Memories & Updates
+              {t('events_badge')}
             </span>
             <h2 className="text-3xl sm:text-4xl font-extrabold text-stone-900 tracking-tight">
-              Recent Events & Media Gallery
+              {t('events_title')}
             </h2>
             <p className="text-sm text-stone-600 max-w-xl">
-              Glimpse recent celebrations, wildlife boat recordings from Lake Chamo, and cultural festivals hosted at Tourist Hotel.
+              {t('events_subtitle')}
             </p>
           </div>
 
@@ -161,7 +161,7 @@ export const EventsSection: React.FC<EventsSectionProps> = ({ onSelectEvent }) =
 
                   {/* Card Footer */}
                   <div className="p-5 pt-3 border-t border-stone-100 flex items-center justify-between text-xs font-bold text-amber-800">
-                    <span>{isVideo ? 'Watch Video' : 'View Full Image'}</span>
+                    <span>{isVideo ? t('events_watch_video') : t('events_view_photo')}</span>
                     <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
                   </div>
 
@@ -176,7 +176,7 @@ export const EventsSection: React.FC<EventsSectionProps> = ({ onSelectEvent }) =
           <div className="space-y-1 text-center sm:text-left">
             <h4 className="text-base font-bold text-white flex items-center justify-center sm:justify-start gap-2">
               <Sparkles className="w-4 h-4 text-amber-400" />
-              <span>Have a new event, conference photo, or tour video?</span>
+              <span>{t('events_upload_prompt')}</span>
             </h4>
             <p className="text-xs text-stone-300">
               Hotel management can upload high-res photos and video recordings directly through the Admin CMS.
@@ -185,10 +185,10 @@ export const EventsSection: React.FC<EventsSectionProps> = ({ onSelectEvent }) =
 
           <button
             onClick={() => setIsAdminOpen(true)}
-            className="px-4.5 py-2.5 bg-amber-600 hover:bg-amber-500 active:bg-amber-700 text-stone-950 rounded-xl text-xs font-bold shadow-md transition-all whitespace-nowrap flex items-center gap-2 shrink-0"
+            className="px-4.5 py-2.5 bg-amber-600 hover:bg-amber-500 active:bg-amber-700 text-stone-950 rounded-xl text-xs font-bold shadow-md transition-all whitespace-nowrap flex items-center gap-2 shrink-0 cursor-pointer"
           >
             <Plus className="w-4 h-4" />
-            <span>Upload New Event / Media</span>
+            <span>{t('events_upload_btn')}</span>
           </button>
         </div>
 
