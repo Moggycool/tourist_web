@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { BedDouble, Users, Maximize, Check, ArrowRight } from 'lucide-react';
+import { BedDouble, Users, Maximize, Check, ArrowRight, Sparkles, ShieldCheck, Car, Coffee } from 'lucide-react';
 import { useHotel } from '../context/HotelContext';
 import { Room } from '../types';
 
@@ -12,7 +12,7 @@ export const RoomsSection: React.FC<RoomsSectionProps> = ({
   onSelectRoomForBooking,
   onSelectRoomForDetail
 }) => {
-  const { rooms, formatPrice, t } = useHotel();
+  const { rooms, formatPrice, setIsCompareOpen, t } = useHotel();
   const [selectedFilter, setSelectedFilter] = useState<'all' | 'standard' | 'deluxe' | 'suite' | 'family'>('all');
 
   const filteredRooms = selectedFilter === 'all'
@@ -45,21 +45,32 @@ export const RoomsSection: React.FC<RoomsSectionProps> = ({
             </p>
           </div>
 
-          {/* Segmented Filter Control */}
-          <div className="flex items-center gap-1 p-1 bg-stone-200/80 rounded-xl overflow-x-auto shrink-0">
-            {categories.map((cat) => (
-              <button
-                key={cat.id}
-                onClick={() => setSelectedFilter(cat.id as any)}
-                className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors whitespace-nowrap ${
-                  selectedFilter === cat.id
-                    ? 'bg-white text-stone-900 shadow-xs'
-                    : 'text-stone-600 hover:text-stone-950'
-                }`}
-              >
-                {cat.label}
-              </button>
-            ))}
+          {/* Controls: Compare Button & Filter Pills */}
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              onClick={() => setIsCompareOpen(true)}
+              className="px-3.5 py-1.5 text-xs font-bold bg-amber-100/80 hover:bg-amber-200 text-amber-900 border border-amber-300 rounded-xl transition-colors flex items-center gap-1.5 cursor-pointer shadow-2xs"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-amber-700" />
+              <span>{t('btn_compare_all')}</span>
+            </button>
+
+            {/* Segmented Filter Control */}
+            <div className="flex items-center gap-1 p-1 bg-stone-200/80 rounded-xl overflow-x-auto shrink-0">
+              {categories.map((cat) => (
+                <button
+                  key={cat.id}
+                  onClick={() => setSelectedFilter(cat.id as any)}
+                  className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors whitespace-nowrap cursor-pointer ${
+                    selectedFilter === cat.id
+                      ? 'bg-white text-stone-900 shadow-xs'
+                      : 'text-stone-600 hover:text-stone-950'
+                  }`}
+                >
+                  {cat.label}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
@@ -121,6 +132,19 @@ export const RoomsSection: React.FC<RoomsSectionProps> = ({
                         <span className="truncate">{amenity}</span>
                       </div>
                     ))}
+                  </div>
+
+                  {/* Free inclusions highlight */}
+                  <div className="pt-2 flex flex-wrap items-center gap-2 text-[10px] text-emerald-800 font-semibold">
+                    <span className="bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md flex items-center gap-1">
+                      <Coffee className="w-3 h-3 text-emerald-600" /> Free Breakfast Included
+                    </span>
+                    <span className="bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-md text-blue-800 flex items-center gap-1">
+                      <Car className="w-3 h-3 text-blue-600" /> Free Airport Shuttle
+                    </span>
+                    <span className="bg-stone-100 border border-stone-200 px-2 py-0.5 rounded-md text-stone-700 flex items-center gap-1">
+                      <ShieldCheck className="w-3 h-3 text-stone-600" /> 48h Free Cancellation
+                    </span>
                   </div>
 
                 </div>

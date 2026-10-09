@@ -7,7 +7,7 @@ interface FooterProps {
 }
 
 export const Footer: React.FC<FooterProps> = ({ onNavClick }) => {
-  const { hotelInfo, setIsAdminOpen, t } = useHotel();
+  const { hotelInfo, setIsAdminOpen, setIsGuestPortalOpen, setIsCompareOpen, t } = useHotel();
 
   return (
     <footer className="bg-stone-950 text-stone-400 border-t border-stone-800 text-xs">
@@ -42,6 +42,22 @@ export const Footer: React.FC<FooterProps> = ({ onNavClick }) => {
                 </button>
               </li>
               <li>
+                <button
+                  onClick={() => setIsGuestPortalOpen(true)}
+                  className="text-amber-400 hover:text-amber-300 font-medium transition-colors cursor-pointer flex items-center gap-1.5"
+                >
+                  <span>★ {t('nav_my_booking')} (Lookup & Vouchers)</span>
+                </button>
+              </li>
+              <li>
+                <button
+                  onClick={() => setIsCompareOpen(true)}
+                  className="hover:text-white transition-colors cursor-pointer"
+                >
+                  {t('nav_compare_rooms')}
+                </button>
+              </li>
+              <li>
                 <button onClick={() => onNavClick('dining')} className="hover:text-white transition-colors cursor-pointer">
                   {t('nav_dining')}
                 </button>
@@ -52,13 +68,8 @@ export const Footer: React.FC<FooterProps> = ({ onNavClick }) => {
                 </button>
               </li>
               <li>
-                <button onClick={() => onNavClick('meetings')} className="hover:text-white transition-colors cursor-pointer">
-                  {t('nav_meetings')}
-                </button>
-              </li>
-              <li>
                 <button onClick={() => onNavClick('about')} className="hover:text-white transition-colors cursor-pointer">
-                  {t('nav_about')}
+                  Hotel Policies & FAQ
                 </button>
               </li>
             </ul>

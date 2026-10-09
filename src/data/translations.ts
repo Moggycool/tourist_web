@@ -121,7 +121,20 @@ export const TRANSLATIONS = {
     footer_rights: 'All rights reserved.',
     footer_quick_links: 'Quick Links',
     footer_contact: 'Contact & Inquiries',
-    footer_staff: 'Staff & Management'
+    footer_staff: 'Staff & Management',
+
+    // New additions
+    nav_my_booking: 'My Booking',
+    nav_compare_rooms: 'Compare Rooms',
+    nav_policies_faq: 'Policies & FAQs',
+    announcement_badge: 'Season Offer',
+    announcement_text: '🌿 Rift Valley & Safari Special: Get 15% OFF direct bookings with code ARBA2026 + Free Airport Shuttle!',
+    hero_rooms_count: 'Rooms',
+    hero_promo_code: 'Promo Code',
+    btn_compare_all: 'Compare All Room Categories',
+    portal_lookup_btn: 'Retrieve Reservation',
+    inquiry_section_title: 'Direct Inquiries & Banquet Requests',
+    inquiry_section_subtitle: 'Contact our team for conference halls, weddings, corporate packages, and special requests.'
   },
 
   am: {
@@ -138,6 +151,9 @@ export const TRANSLATIONS = {
     nav_currency: 'የገንዘብ አይነት',
     nav_lang: 'ቋንቋ',
     nav_admin: 'አድሚን ፖርታል',
+    nav_my_booking: 'የያዝኩት ክፍል',
+    nav_compare_rooms: 'ክፍሎችን ያነጻጽሩ',
+    nav_policies_faq: 'ህጎች እና ተደጋጋሚ ጥያቄዎች',
 
     // Hero Section
     hero_badge: 'ወደ አርባ ምንጭ ቱሪስት ሆቴል እንኳን በደህና መጡ',
@@ -246,6 +262,16 @@ export const TRANSLATIONS = {
     footer_rights: 'መብቱ በህግ የተጠበቀ ነው።',
     footer_quick_links: 'ፈጣን ማገናኛዎች',
     footer_contact: 'አድራሻ እና ግንኙነት',
-    footer_staff: 'የሰራተኞች እና አስተዳደር መግቢያ'
+    footer_staff: 'የሰራተኞች እና አስተዳደር መግቢያ',
+
+    // New additions
+    announcement_badge: 'ወቅታዊ ቅናሽ',
+    announcement_text: '🌿 ልዩ የወቅቱ ቅናሽ፡ በኮድ ARBA2026 የ15% ቅናሽ እና ነፃ የአውሮፕላን ማረፊያ ትራንስፖርት ያግኙ!',
+    hero_rooms_count: 'የክፍል ብዛት',
+    hero_promo_code: 'የቅናሽ ኮድ',
+    btn_compare_all: 'ሁሉንም ክፍሎች ጎን ለጎን ያነጻጽሩ',
+    portal_lookup_btn: 'የያዙትን ክፍል ይፈልጉ',
+    inquiry_section_title: 'ቀጥታ ጥያቄ እና የፕሮግራም ማመልከቻ',
+    inquiry_section_subtitle: 'ለስብሰባ አዳራሾች፣ ሰርግ፣ የድርጅት ዝግጅቶች እና ልዩ ጥያቄዎች ያነጋግሩን።'
   }
 };

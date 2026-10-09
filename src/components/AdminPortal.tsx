@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { X, Lock, Save, Plus, Trash2, BedDouble, Compass, Utensils, Download, Upload, RefreshCw, CheckCircle, Film, Image as ImageIcon, Video, Calendar, MapPin, Eye, ShieldCheck, Key, LogOut, Settings, HelpCircle, Smartphone, Send } from 'lucide-react';
+import { X, Lock, Save, Plus, Trash2, BedDouble, Compass, Utensils, Download, Upload, RefreshCw, CheckCircle, Film, Image as ImageIcon, Video, Calendar, MapPin, Eye, ShieldCheck, Key, LogOut, Settings, HelpCircle, Smartphone, Send, MessageSquare, Tag, UserPlus } from 'lucide-react';
 import { useHotel } from '../context/HotelContext';
 import { Room, TourPackage, MenuItem, HotelInfo, HotelEvent } from '../types';
 import { TelebirrDemoModal } from './TelebirrDemoModal';
@@ -25,8 +25,13 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ isOpen, onClose }) => 
     addEvent,
     deleteEvent,
     bookings,
+    addBooking,
     updateBookingStatus,
     deleteBooking,
+    inquiries,
+    updateInquiryStatus,
+    promoCodes,
+    togglePromoCodeActive,
     resetToDefaults,
     exportDataJSON,
     importDataJSON,
@@ -45,7 +50,7 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ isOpen, onClose }) => 
     clearNotifications
   } = useHotel();
 
-  const [activeTab, setActiveTab] = useState<'info' | 'rooms' | 'tours' | 'dining' | 'events' | 'bookings' | 'notifications' | 'security' | 'backup'>('events');
+  const [activeTab, setActiveTab] = useState<'info' | 'rooms' | 'tours' | 'dining' | 'events' | 'bookings' | 'inquiries' | 'promos' | 'notifications' | 'security' | 'backup'>('events');
   const [saveToast, setSaveToast] = useState<string | null>(null);
 
   // Telebirr Vendor Simulator in Admin
@@ -84,11 +89,51 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ isOpen, onClose }) => 
   // Backup import state
   const [importJsonText, setImportJsonText] = useState('');
 
+  // Walk-in / Phone reservation state
+  const [showWalkInModal, setShowWalkInModal] = useState(false);
+  const [walkInName, setWalkInName] = useState('');
+  const [walkInPhone, setWalkInPhone] = useState('+251 9');
+  const [walkInEmail, setWalkInEmail] = useState('');
+  const [walkInRoomId, setWalkInRoomId] = useState(rooms[0]?.id || '');
+  const [walkInCheckIn, setWalkInCheckIn] = useState('2026-10-15');
+  const [walkInCheckOut, setWalkInCheckOut] = useState('2026-10-17');
+  const [walkInPayMethod, setWalkInPayMethod] = useState<'pay_on_arrival' | 'telebirr' | 'cbe_birr'>('pay_on_arrival');
+
   if (!isOpen) return null;
 
   const triggerToast = (msg: string) => {
     setSaveToast(msg);
     setTimeout(() => setSaveToast(null), 3000);
+  };
+
+  const handleCreateWalkInBooking = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!walkInName.trim()) return;
+    const room = rooms.find(r => r.id === walkInRoomId) || rooms[0];
+    const ref = `TH-WALK-${Math.floor(1000 + Math.random() * 9000)}`;
+    addBooking({
+      bookingRef: ref,
+      roomId: room.id,
+      roomName: room.name,
+      roomCount: 1,
+      guestName: walkInName,
+      guestEmail: walkInEmail || 'frontdesk@touristhotel.et',
+      guestPhone: walkInPhone,
+      checkInDate: walkInCheckIn,
+      checkOutDate: walkInCheckOut,
+      adultsCount: 2,
+      childrenCount: 0,
+      totalNights: 2,
+      totalPriceETB: room.priceETB * 2,
+      totalPriceUSD: room.priceUSD * 2,
+      airportPickupRequested: false,
+      paymentMethod: walkInPayMethod,
+      paymentStatus: walkInPayMethod === 'pay_on_arrival' ? 'Pay on Arrival' : 'Paid',
+      specialRequests: 'Walk-in / Phone booking registered by Front Desk'
+    });
+    setShowWalkInModal(false);
+    setWalkInName('');
+    triggerToast(`Walk-in reservation ${ref} created successfully!`);
   };
 
   const handleSaveHotelInfo = (e: React.FormEvent) => {
@@ -407,6 +452,34 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ isOpen, onClose }) => 
             <span>Guest Bookings</span>
             <span className="px-1.5 py-0.2 rounded-full bg-amber-700 text-white text-[10px] font-bold">
               {bookings.length}
+            </span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('inquiries')}
+            className={`px-3.5 py-1.5 rounded-lg transition-colors whitespace-nowrap flex items-center gap-1.5 ${
+              activeTab === 'inquiries' ? 'bg-amber-100 text-amber-950 shadow-xs font-bold' : 'text-stone-600 hover:text-stone-900'
+            }`}
+          >
+            <MessageSquare className="w-3.5 h-3.5 text-amber-700" />
+            <span>Guest Inquiries</span>
+            {inquiries.filter(i => i.status === 'New').length > 0 && (
+              <span className="w-4 h-4 rounded-full bg-emerald-600 text-white text-[10px] flex items-center justify-center font-bold">
+                {inquiries.filter(i => i.status === 'New').length}
+              </span>
+            )}
+          </button>
+
+          <button
+            onClick={() => setActiveTab('promos')}
+            className={`px-3.5 py-1.5 rounded-lg transition-colors whitespace-nowrap flex items-center gap-1.5 ${
+              activeTab === 'promos' ? 'bg-amber-100 text-amber-950 shadow-xs font-bold' : 'text-stone-600 hover:text-stone-900'
+            }`}
+          >
+            <Tag className="w-3.5 h-3.5 text-amber-700" />
+            <span>Promo Codes</span>
+            <span className="w-4 h-4 rounded-full bg-stone-200 text-stone-800 text-[10px] flex items-center justify-center font-bold">
+              {promoCodes.length}
             </span>
           </button>
 
@@ -1142,15 +1215,132 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ isOpen, onClose }) => 
           {/* TAB 5: GUEST BOOKINGS */}
           {activeTab === 'bookings' && (
             <div className="space-y-4">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
                   <h4 className="text-sm font-bold text-stone-900">Guest Bookings Registry</h4>
-                  <p className="text-xs text-stone-500">View and update real-time room reservations made on the website.</p>
+                  <p className="text-xs text-stone-500">View and update real-time room reservations made on the website or front desk.</p>
                 </div>
-                <span className="text-xs font-bold text-amber-800 bg-amber-50 px-2.5 py-1 rounded-md">
-                  {bookings.length} Total Reservations
-                </span>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setShowWalkInModal(!showWalkInModal)}
+                    className="px-3 py-1.5 bg-amber-700 hover:bg-amber-800 text-white rounded-lg text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
+                  >
+                    <UserPlus className="w-3.5 h-3.5" />
+                    <span>+ Walk-in / Phone Reservation</span>
+                  </button>
+                  <span className="text-xs font-bold text-amber-800 bg-amber-50 px-2.5 py-1 rounded-md border border-amber-200">
+                    {bookings.length} Total Reservations
+                  </span>
+                </div>
               </div>
+
+              {/* Inline Walk-in / Phone Reservation Form */}
+              {showWalkInModal && (
+                <form onSubmit={handleCreateWalkInBooking} className="p-4 bg-amber-50/70 border border-amber-300 rounded-2xl space-y-3 animate-fadeIn text-xs">
+                  <div className="flex items-center justify-between border-b border-amber-200 pb-2">
+                    <span className="font-bold text-amber-950 flex items-center gap-1.5">
+                      <UserPlus className="w-4 h-4 text-amber-700" />
+                      <span>Front Desk Manual / Walk-in Booking Entry</span>
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setShowWalkInModal(false)}
+                      className="text-stone-400 hover:text-stone-700 font-bold"
+                    >
+                      ✕
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div>
+                      <label className="block text-[11px] font-bold text-stone-700 mb-1">Guest Full Name *</label>
+                      <input
+                        type="text"
+                        required
+                        value={walkInName}
+                        onChange={(e) => setWalkInName(e.target.value)}
+                        placeholder="e.g. Alemayehu Bekele"
+                        className="w-full bg-white border border-stone-300 rounded-lg p-2 font-medium"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-bold text-stone-700 mb-1">Phone Number *</label>
+                      <input
+                        type="tel"
+                        required
+                        value={walkInPhone}
+                        onChange={(e) => setWalkInPhone(e.target.value)}
+                        className="w-full bg-white border border-stone-300 rounded-lg p-2 font-medium"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-bold text-stone-700 mb-1">Accommodation</label>
+                      <select
+                        value={walkInRoomId}
+                        onChange={(e) => setWalkInRoomId(e.target.value)}
+                        className="w-full bg-white border border-stone-300 rounded-lg p-2 font-medium"
+                      >
+                        {rooms.map(r => (
+                          <option key={r.id} value={r.id}>
+                            {r.name} ({formatPrice(r.priceETB, r.priceUSD)})
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div>
+                      <label className="block text-[11px] font-bold text-stone-700 mb-1">Check-in Date</label>
+                      <input
+                        type="date"
+                        required
+                        value={walkInCheckIn}
+                        onChange={(e) => setWalkInCheckIn(e.target.value)}
+                        className="w-full bg-white border border-stone-300 rounded-lg p-2"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-bold text-stone-700 mb-1">Check-out Date</label>
+                      <input
+                        type="date"
+                        required
+                        value={walkInCheckOut}
+                        onChange={(e) => setWalkInCheckOut(e.target.value)}
+                        className="w-full bg-white border border-stone-300 rounded-lg p-2"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-bold text-stone-700 mb-1">Payment Method</label>
+                      <select
+                        value={walkInPayMethod}
+                        onChange={(e) => setWalkInPayMethod(e.target.value as any)}
+                        className="w-full bg-white border border-stone-300 rounded-lg p-2 font-medium"
+                      >
+                        <option value="pay_on_arrival">Pay at Front Desk (Cash / Birr)</option>
+                        <option value="telebirr">Telebirr Mobile Money</option>
+                        <option value="cbe_birr">CBE Birr Shortcode</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end gap-2 pt-1">
+                    <button
+                      type="button"
+                      onClick={() => setShowWalkInModal(false)}
+                      className="px-3 py-1.5 bg-stone-200 hover:bg-stone-300 text-stone-800 rounded-lg font-semibold"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      className="px-4 py-1.5 bg-amber-700 hover:bg-amber-800 text-white rounded-lg font-bold shadow-xs cursor-pointer"
+                    >
+                      Save & Issue Voucher
+                    </button>
+                  </div>
+                </form>
+              )}
 
               {bookings.length === 0 ? (
                 <div className="py-12 text-center text-xs text-stone-400 bg-stone-50 rounded-2xl border border-stone-200">
@@ -1263,6 +1453,156 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ isOpen, onClose }) => 
                   ))}
                 </div>
               )}
+            </div>
+          )}
+
+          {/* TAB 6: GUEST INQUIRIES & CONTACT MESSAGES */}
+          {activeTab === 'inquiries' && (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="text-sm font-bold text-stone-900">Guest Messages & Inquiries</h4>
+                  <p className="text-xs text-stone-500">Submissions received through the hotel website contact form and tour inquiries.</p>
+                </div>
+                <span className="text-xs font-bold text-amber-800 bg-amber-50 px-2.5 py-1 rounded-md border border-amber-200">
+                  {inquiries.length} Inquiries
+                </span>
+              </div>
+
+              {inquiries.length === 0 ? (
+                <div className="py-12 text-center text-xs text-stone-400 bg-stone-50 rounded-2xl border border-stone-200">
+                  No guest inquiries recorded yet.
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {inquiries.map((inq) => (
+                    <div
+                      key={inq.id}
+                      className={`p-4 rounded-2xl border transition-all text-xs space-y-3 ${
+                        inq.status === 'New'
+                          ? 'bg-amber-50/60 border-amber-300'
+                          : 'bg-stone-50 border-stone-200'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between border-b border-stone-200/80 pb-2">
+                        <div className="flex items-center gap-2">
+                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                            inq.status === 'New'
+                              ? 'bg-amber-600 text-white'
+                              : inq.status === 'Responded'
+                              ? 'bg-emerald-100 text-emerald-900'
+                              : 'bg-stone-200 text-stone-700'
+                          }`}>
+                            {inq.status.toUpperCase()}
+                          </span>
+                          <span className="font-bold text-stone-900 text-sm">
+                            {inq.department.toUpperCase()} INQUIRY
+                          </span>
+                          {inq.dates && (
+                            <span className="text-[11px] text-amber-800 font-semibold bg-amber-100/70 px-2 py-0.5 rounded">
+                              {inq.dates}
+                            </span>
+                          )}
+                        </div>
+                        <span className="text-[10px] text-stone-400 font-medium">{inq.createdAt}</span>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-[11px] text-stone-600">
+                        <div>
+                          <strong className="text-stone-900 block">{inq.guestName}</strong>
+                          <span>Guest Name</span>
+                        </div>
+                        <div>
+                          <span className="font-medium text-stone-800 block">{inq.email}</span>
+                          <span>Email</span>
+                        </div>
+                        <div>
+                          <span className="font-medium text-stone-800 block">{inq.phone}</span>
+                          <span>Phone / WhatsApp</span>
+                        </div>
+                      </div>
+
+                      <div className="p-3 bg-white rounded-xl border border-stone-200 text-xs text-stone-800 leading-relaxed">
+                        {inq.message}
+                      </div>
+
+                      <div className="flex items-center justify-between pt-1">
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => updateInquiryStatus(inq.id, inq.status === 'Responded' ? 'New' : 'Responded')}
+                            className="px-3 py-1 bg-white hover:bg-stone-100 border border-stone-300 rounded-lg text-xs font-semibold text-stone-800 transition-colors cursor-pointer"
+                          >
+                            Mark as {inq.status === 'Responded' ? 'Unread / New' : 'Responded'}
+                          </button>
+                        </div>
+                        <a
+                          href={`https://wa.me/${inq.phone.replace(/[^0-9]/g, '')}?text=Hello%20${encodeURIComponent(inq.guestName)},%20regarding%20your%20inquiry%20to%20Tourist%20Hotel%20Arba%20Minch...`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="px-3 py-1 bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg text-xs font-bold flex items-center gap-1.5 transition-colors"
+                        >
+                          <Send className="w-3 h-3" />
+                          <span>Reply via WhatsApp</span>
+                        </a>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* TAB 7: PROMO CODES & DISCOUNTS */}
+          {activeTab === 'promos' && (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="text-sm font-bold text-stone-900">Promo Codes & Seasonal Vouchers</h4>
+                  <p className="text-xs text-stone-500">Active discount vouchers usable by guests in the booking modal and quick search bar.</p>
+                </div>
+                <span className="text-xs font-bold text-amber-800 bg-amber-50 px-2.5 py-1 rounded-md border border-amber-200">
+                  {promoCodes.filter(p => p.isActive).length} Active Codes
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {promoCodes.map((p) => (
+                  <div
+                    key={p.code}
+                    className={`p-4 rounded-2xl border transition-all text-xs space-y-3 ${
+                      p.isActive
+                        ? 'bg-white border-amber-300 shadow-xs'
+                        : 'bg-stone-100 border-stone-200 opacity-60'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono font-black text-amber-800 text-base bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-lg">
+                          {p.code}
+                        </span>
+                        <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-900">
+                          {p.discountPercent}% OFF
+                        </span>
+                      </div>
+                      <button
+                        onClick={() => togglePromoCodeActive(p.code)}
+                        className={`px-3 py-1 rounded-lg text-xs font-bold transition-colors cursor-pointer ${
+                          p.isActive
+                            ? 'bg-emerald-600 text-white hover:bg-emerald-700'
+                            : 'bg-stone-300 text-stone-700 hover:bg-stone-400'
+                        }`}
+                      >
+                        {p.isActive ? 'Active' : 'Disabled'}
+                      </button>
+                    </div>
+
+                    <p className="text-stone-600 text-xs">{p.description}</p>
+                    <div className="text-[11px] text-stone-400 pt-1 border-t border-stone-100">
+                      Voucher Status: <strong className={p.isActive ? 'text-emerald-700' : 'text-stone-500'}>{p.isActive ? 'Active for Online Bookings' : 'Paused'}</strong>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 

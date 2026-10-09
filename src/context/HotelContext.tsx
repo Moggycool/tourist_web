@@ -1,7 +1,48 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { HotelInfo, Room, TourPackage, MenuItem, ConferenceHall, RoomBooking, HotelEvent, Currency, Language, TelebirrMerchantConfig, NotificationLog } from '../types';
-import { INITIAL_HOTEL_INFO, INITIAL_ROOMS, INITIAL_TOURS, INITIAL_MENU_ITEMS, INITIAL_CONFERENCE_HALLS, INITIAL_EVENTS, INITIAL_TELEBIRR_CONFIG, INITIAL_NOTIFICATIONS } from '../data/hotelData';
+import {
+  HotelInfo,
+  Room,
+  TourPackage,
+  MenuItem,
+  ConferenceHall,
+  RoomBooking,
+  HotelEvent,
+  Currency,
+  Language,
+  TelebirrMerchantConfig,
+  NotificationLog,
+  BookingAddon,
+  PromoCode,
+  GuestInquiry,
+  HotelPolicyItem,
+  FAQItem
+} from '../types';
+import {
+  INITIAL_HOTEL_INFO,
+  INITIAL_ROOMS,
+  INITIAL_TOURS,
+  INITIAL_MENU_ITEMS,
+  INITIAL_CONFERENCE_HALLS,
+  INITIAL_EVENTS,
+  INITIAL_TELEBIRR_CONFIG,
+  INITIAL_NOTIFICATIONS,
+  INITIAL_ADDONS,
+  INITIAL_PROMO_CODES,
+  INITIAL_POLICIES,
+  INITIAL_FAQS,
+  INITIAL_INQUIRIES
+} from '../data/hotelData';
 import { TRANSLATIONS } from '../data/translations';
+
+export interface BookingSearchCriteria {
+  checkIn: string;
+  checkOut: string;
+  adults: number;
+  children: number;
+  roomsCount: number;
+  category: string;
+  promoCode?: string;
+}
 
 interface HotelContextType {
   hotelInfo: HotelInfo;
@@ -28,12 +69,27 @@ interface HotelContextType {
   updateEvent: (id: string, updated: Partial<HotelEvent>) => void;
   deleteEvent: (id: string) => void;
 
+  addons: BookingAddon[];
+  promoCodes: PromoCode[];
+  togglePromoCodeActive: (code: string) => void;
+  validatePromoCode: (code: string) => PromoCode | null;
+
+  policies: HotelPolicyItem[];
+  faqs: FAQItem[];
+
+  inquiries: GuestInquiry[];
+  addInquiry: (inquiry: Omit<GuestInquiry, 'id' | 'createdAt' | 'status'>) => void;
+  updateInquiryStatus: (id: string, status: GuestInquiry['status']) => void;
+
   conferenceHalls: ConferenceHall[];
 
   bookings: RoomBooking[];
   addBooking: (bookingData: Omit<RoomBooking, 'id' | 'createdAt' | 'status'>) => RoomBooking;
   updateBookingStatus: (id: string, status: RoomBooking['status']) => void;
   deleteBooking: (id: string) => void;
+  getBookingByRef: (bookingRef: string, phoneOrEmail?: string) => RoomBooking | undefined;
+  addGuestServiceRequest: (bookingRef: string, requestNote: string) => boolean;
+  cancelBookingByGuest: (bookingRef: string, phoneOrEmail: string) => { success: boolean; message: string };
 
   currency: Currency;
   setCurrency: (c: Currency) => void;
@@ -42,6 +98,15 @@ interface HotelContextType {
   language: Language;
   setLanguage: (lang: Language) => void;
   t: (key: string) => string;
+
+  searchCriteria: BookingSearchCriteria;
+  setSearchCriteria: React.Dispatch<React.SetStateAction<BookingSearchCriteria>>;
+
+  isGuestPortalOpen: boolean;
+  setIsGuestPortalOpen: (open: boolean) => void;
+
+  isCompareOpen: boolean;
+  setIsCompareOpen: (open: boolean) => void;
 
   isAdminOpen: boolean;
   setIsAdminOpen: (open: boolean) => void;
@@ -195,6 +260,172 @@ export const HotelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       return INITIAL_NOTIFICATIONS;
     }
   });
+
+  const [addons] = useState<BookingAddon[]>(INITIAL_ADDONS);
+  const [policies] = useState<HotelPolicyItem[]>(INITIAL_POLICIES);
+  const [faqs] = useState<FAQItem[]>(INITIAL_FAQS);
+
+  const [promoCodes, setPromoCodes] = useState<PromoCode[]>(() => {
+    try {
+      const saved = localStorage.getItem(`${STORAGE_KEY}_promos`);
+      return saved ? JSON.parse(saved) : INITIAL_PROMO_CODES;
+    } catch {
+      return INITIAL_PROMO_CODES;
+    }
+  });
+
+  const [inquiries, setInquiries] = useState<GuestInquiry[]>(() => {
+    try {
+      const saved = localStorage.getItem(`${STORAGE_KEY}_inquiries`);
+      return saved ? JSON.parse(saved) : INITIAL_INQUIRIES;
+    } catch {
+      return INITIAL_INQUIRIES;
+    }
+  });
+
+  const [searchCriteria, setSearchCriteria] = useState<BookingSearchCriteria>({
+    checkIn: '2026-10-12',
+    checkOut: '2026-10-15',
+    adults: 2,
+    children: 0,
+    roomsCount: 1,
+    category: 'all',
+    promoCode: ''
+  });
+
+  const [isGuestPortalOpen, setIsGuestPortalOpen] = useState<boolean>(false);
+  const [isCompareOpen, setIsCompareOpen] = useState<boolean>(false);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(`${STORAGE_KEY}_promos`, JSON.stringify(promoCodes));
+    } catch (e) {
+      console.warn('Storage error', e);
+    }
+  }, [promoCodes]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(`${STORAGE_KEY}_inquiries`, JSON.stringify(inquiries));
+    } catch (e) {
+      console.warn('Storage error', e);
+    }
+  }, [inquiries]);
+
+  const togglePromoCodeActive = (code: string) => {
+    setPromoCodes(prev =>
+      prev.map(p => (p.code.toUpperCase() === code.toUpperCase() ? { ...p, isActive: !p.isActive } : p))
+    );
+  };
+
+  const validatePromoCode = (code: string): PromoCode | null => {
+    if (!code) return null;
+    const clean = code.trim().toUpperCase();
+    const found = promoCodes.find(p => p.code.toUpperCase() === clean && p.isActive);
+    return found || null;
+  };
+
+  const addInquiry = (inquiry: Omit<GuestInquiry, 'id' | 'createdAt' | 'status'>) => {
+    const newInquiry: GuestInquiry = {
+      ...inquiry,
+      id: `inq-${Date.now()}-${Math.random().toString(36).substr(2, 3)}`,
+      createdAt: new Date().toISOString().replace('T', ' ').substr(0, 16),
+      status: 'New'
+    };
+    setInquiries(prev => [newInquiry, ...prev]);
+
+    // Also trigger reception alert
+    addNotification({
+      bookingRef: `INQ-${newInquiry.department.toUpperCase()}`,
+      type: 'whatsapp_reception',
+      recipient: `Hotel Management (${hotelInfo.phonePrimary})`,
+      title: `New Website Inquiry: ${newInquiry.guestName} (${newInquiry.department.toUpperCase()})`,
+      message: `${newInquiry.guestName} (${newInquiry.phone}): "${newInquiry.message.substr(0, 80)}..."`,
+      status: 'Delivered'
+    });
+  };
+
+  const updateInquiryStatus = (id: string, status: GuestInquiry['status']) => {
+    setInquiries(prev => prev.map(inq => (inq.id === id ? { ...inq, status } : inq)));
+  };
+
+  const getBookingByRef = (bookingRef: string, phoneOrEmail?: string): RoomBooking | undefined => {
+    if (!bookingRef) return undefined;
+    const cleanRef = bookingRef.trim().toUpperCase();
+    const found = bookings.find(b => b.bookingRef.toUpperCase() === cleanRef);
+    if (!found) return undefined;
+    if (phoneOrEmail) {
+      const query = phoneOrEmail.trim().toLowerCase().replace(/[^a-z0-9]/g, '');
+      const matchEmail = found.guestEmail.toLowerCase().includes(phoneOrEmail.trim().toLowerCase());
+      const matchPhone = found.guestPhone.replace(/[^0-9]/g, '').includes(query);
+      if (!matchEmail && !matchPhone) return undefined;
+    }
+    return found;
+  };
+
+  const addGuestServiceRequest = (bookingRef: string, requestNote: string): boolean => {
+    const booking = bookings.find(b => b.bookingRef.toUpperCase() === bookingRef.trim().toUpperCase());
+    if (!booking) return false;
+
+    setBookings(prev =>
+      prev.map(b => {
+        if (b.bookingRef.toUpperCase() === bookingRef.trim().toUpperCase()) {
+          const notes = b.guestRequestsNotes || [];
+          return {
+            ...b,
+            guestRequestsNotes: [
+              ...notes,
+              `${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}: ${requestNote}`
+            ]
+          };
+        }
+        return b;
+      })
+    );
+
+    addNotification({
+      bookingRef: booking.bookingRef,
+      type: 'whatsapp_reception',
+      recipient: `Front Desk (${hotelInfo.phonePrimary})`,
+      title: `Guest Service Request: ${booking.guestName} (Room ${booking.roomName})`,
+      message: `In-stay request for ${booking.bookingRef}: "${requestNote}"`,
+      status: 'Delivered'
+    });
+
+    return true;
+  };
+
+  const cancelBookingByGuest = (bookingRef: string, phoneOrEmail: string): { success: boolean; message: string } => {
+    const booking = getBookingByRef(bookingRef, phoneOrEmail);
+    if (!booking) {
+      return { success: false, message: 'Reservation not found. Please verify your reference and contact details.' };
+    }
+
+    if (booking.status === 'Cancelled') {
+      return { success: false, message: 'This reservation has already been cancelled.' };
+    }
+
+    // Check 48h cancellation rule
+    try {
+      const checkInTime = new Date(booking.checkInDate).getTime();
+      const nowTime = new Date().getTime();
+      const hoursDiff = (checkInTime - nowTime) / (1000 * 3600);
+      if (hoursDiff < 48) {
+        // Still allow cancel, but inform of policy
+        setBookings(prev => prev.map(b => (b.id === booking.id ? { ...b, status: 'Cancelled' } : b)));
+        return {
+          success: true,
+          message:
+            'Booking cancelled. Since arrival is within 48 hours, please contact hotel reception regarding the one-night cancellation fee.'
+        };
+      }
+    } catch {
+      // ignore date calc error
+    }
+
+    setBookings(prev => prev.map(b => (b.id === booking.id ? { ...b, status: 'Cancelled' } : b)));
+    return { success: true, message: 'Reservation cancelled successfully free of charge per our 48-hour policy.' };
+  };
 
   // Admin password & session auth
   const [adminPassword, setAdminPassword] = useState<string>(() => {
@@ -578,17 +809,35 @@ export const HotelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         addEvent,
         updateEvent,
         deleteEvent,
+        addons,
+        promoCodes,
+        togglePromoCodeActive,
+        validatePromoCode,
+        policies,
+        faqs,
+        inquiries,
+        addInquiry,
+        updateInquiryStatus,
         conferenceHalls,
         bookings,
         addBooking,
         updateBookingStatus,
         deleteBooking,
+        getBookingByRef,
+        addGuestServiceRequest,
+        cancelBookingByGuest,
         currency,
         setCurrency,
         formatPrice,
         language,
         setLanguage,
         t,
+        searchCriteria,
+        setSearchCriteria,
+        isGuestPortalOpen,
+        setIsGuestPortalOpen,
+        isCompareOpen,
+        setIsCompareOpen,
         isAdminOpen,
         setIsAdminOpen,
         isAdminAuthenticated,

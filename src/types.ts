@@ -76,11 +76,60 @@ export interface HotelInfo {
   restaurantImage: string;
 }
 
+export interface BookingAddon {
+  id: string;
+  name: string;
+  nameAmharic?: string;
+  priceETB: number;
+  priceUSD: number;
+  description: string;
+  category: 'transport' | 'meal' | 'comfort' | 'safari';
+}
+
+export interface PromoCode {
+  code: string;
+  discountPercent: number;
+  description: string;
+  isActive: boolean;
+}
+
+export interface GuestInquiry {
+  id: string;
+  guestName: string;
+  email: string;
+  phone: string;
+  department: 'general' | 'reservations' | 'conferences' | 'weddings' | 'airport';
+  dates?: string;
+  guestsCount?: number;
+  message: string;
+  createdAt: string;
+  status: 'New' | 'Responded' | 'Archived';
+}
+
+export interface HotelPolicyItem {
+  id: string;
+  title: string;
+  titleAmharic: string;
+  details: string;
+  detailsAmharic: string;
+  iconName?: string;
+}
+
+export interface FAQItem {
+  id: string;
+  question: string;
+  questionAmharic: string;
+  answer: string;
+  answerAmharic: string;
+  category: 'general' | 'booking' | 'tours' | 'facilities';
+}
+
 export interface RoomBooking {
   id: string;
   bookingRef: string;
   roomId: string;
   roomName: string;
+  roomCount: number;
   guestName: string;
   guestEmail: string;
   guestPhone: string;
@@ -91,14 +140,19 @@ export interface RoomBooking {
   totalNights: number;
   totalPriceETB: number;
   totalPriceUSD: number;
+  promoCode?: string;
+  discountETB?: number;
+  discountUSD?: number;
+  selectedAddons?: string[];
   specialRequests?: string;
   airportPickupRequested: boolean;
   flightDetails?: string;
-  status: 'Confirmed' | 'Pending' | 'Checked-in' | 'Cancelled';
+  status: 'Confirmed' | 'Pending' | 'Checked-in' | 'Checked-out' | 'Cancelled';
   paymentMethod?: 'telebirr' | 'cbe_birr' | 'pay_on_arrival';
   paymentStatus?: 'Paid' | 'Pending' | 'Pay on Arrival';
   telebirrTxnId?: string;
   telebirrPhone?: string;
+  guestRequestsNotes?: string[];
   createdAt: string;
 }
 

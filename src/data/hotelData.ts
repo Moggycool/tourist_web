@@ -1,4 +1,4 @@
-import { HotelInfo, Room, TourPackage, MenuItem, ConferenceHall, HotelEvent, TelebirrMerchantConfig, NotificationLog } from '../types';
+import { HotelInfo, Room, TourPackage, MenuItem, ConferenceHall, HotelEvent, TelebirrMerchantConfig, NotificationLog, BookingAddon, PromoCode, GuestInquiry, HotelPolicyItem, FAQItem } from '../types';
 
 export const INITIAL_TELEBIRR_CONFIG: TelebirrMerchantConfig = {
   merchantName: 'Tourist Hotel Arba Minch',
@@ -363,3 +363,173 @@ export const INITIAL_EVENTS: HotelEvent[] = [
     featured: false
   }
 ];
+
+export const INITIAL_ADDONS: BookingAddon[] = [
+  {
+    id: 'addon-airport-shuttle',
+    name: 'Complimentary AMH Airport Shuttle',
+    nameAmharic: 'ነፃ የአውሮፕላን ማረፊያ ትራንስፖርት',
+    priceETB: 0,
+    priceUSD: 0,
+    description: 'Dedicated air-conditioned hotel minivan waiting for your Ethiopian Airlines flight at Arba Minch Airport.',
+    category: 'transport'
+  },
+  {
+    id: 'addon-extra-bed',
+    name: 'Extra Rollaway Bed & Linens',
+    nameAmharic: 'ተጨማሪ አልጋ',
+    priceETB: 600,
+    priceUSD: 5,
+    description: 'Comfortable extra spring bed placed in room with fresh cotton linens and towels.',
+    category: 'comfort'
+  },
+  {
+    id: 'addon-buna-welcome',
+    name: 'Traditional Buna Coffee Welcome Ceremony',
+    nameAmharic: 'የእንኳን ደህና መጡ ባህላዊ ቡና',
+    priceETB: 300,
+    priceUSD: 2.5,
+    description: 'Private clay jebena brewing with popcorn and frankincense prepared upon arrival.',
+    category: 'meal'
+  },
+  {
+    id: 'addon-late-checkout',
+    name: 'Late Checkout Guarantee (up to 4:00 PM)',
+    nameAmharic: 'ዘግይቶ መውጣት (እስከ 10:00 ሰዓት)',
+    priceETB: 500,
+    priceUSD: 4.5,
+    description: 'Relax in your room until late afternoon before your evening domestic flight or journey.',
+    category: 'comfort'
+  },
+  {
+    id: 'addon-chamo-boat-fastpass',
+    name: 'Lake Chamo Boat Safari Priority Booking',
+    nameAmharic: 'የጫሞ ሀይቅ ጀልባ ቅድሚያ ማስያዣ',
+    priceETB: 2400,
+    priceUSD: 22,
+    description: 'Reserved motorboat and licensed wildlife captain directly coordinated with hotel reception.',
+    category: 'safari'
+  }
+];
+
+export const INITIAL_PROMO_CODES: PromoCode[] = [
+  {
+    code: 'WELCOME10',
+    discountPercent: 10,
+    description: '10% Welcome Discount for Direct Website Reservations',
+    isActive: true
+  },
+  {
+    code: 'ARBA2026',
+    discountPercent: 15,
+    description: '15% Seasonal Rift Valley & Safari Promotion',
+    isActive: true
+  },
+  {
+    code: 'TELEBIRR5',
+    discountPercent: 5,
+    description: '5% Instant Saving when paying via Telebirr',
+    isActive: true
+  }
+];
+
+export const INITIAL_POLICIES: HotelPolicyItem[] = [
+  {
+    id: 'policy-checkin',
+    title: 'Check-In & Check-Out Times',
+    titleAmharic: 'የመግቢያ እና የመውጫ ሰዓታት',
+    details: 'Check-in begins at 2:00 PM. Check-out is until 11:00 AM. Early check-in or late check-out is available upon request subject to room availability.',
+    detailsAmharic: 'መግቢያ ከቀኑ 8:00 ሰዓት ጀምሮ ነው። መውጫ ደግሞ ጠዋት 5:00 ሰዓት ነው። እንደ ክፍት ክፍሎች ሁኔታ በቅድሚያ ጥያቄ ማቅረብ ይቻላል።'
+  },
+  {
+    id: 'policy-cancellation',
+    title: 'Cancellation & Refund Rules',
+    titleAmharic: 'የመሰረዝ እና የተመላሽ ገንዘብ ህጎች',
+    details: 'Free cancellation up to 48 hours prior to scheduled arrival date. Cancellations made within 48 hours are subject to a one-night room rate charge.',
+    detailsAmharic: 'ከመድረስዎ 48 ሰዓታት በፊት ያለ ምንም ቅጣት መሰረዝ ይችላሉ። ከ48 ሰዓት በታች ሲሰረዝ የአንድ ሌሊት ክፍያ ይያዛል።'
+  },
+  {
+    id: 'policy-payment',
+    title: 'Payment & Guarantee Window',
+    titleAmharic: 'የክፍያ እና የማረጋገጫ ጊዜ',
+    details: 'Instant payments via Telebirr or CBE Birr are confirmed immediately. For "Pay at Hotel", guests must confirm reservation at hotel reception or via WhatsApp within 2 hours of online booking to guarantee room hold during high season.',
+    detailsAmharic: 'በቴሌብር ወይም በሲቢኢ ብር የሚፈጸም ክፍያ ወዲያውኑ ይረጋገጣል። "በሆቴል እከፍላለሁ" ለሚመርጡ እንግዶች ክፍሉ የተጠበቀ እንዲሆን በ2 ሰዓት ውስጥ በስልክ ወይም በዋትስአፕ ማረጋገጥ ያስፈልጋል።'
+  },
+  {
+    id: 'policy-children',
+    title: 'Children & Extra Bed Policy',
+    titleAmharic: 'የልጆች እና የተጨማሪ አልጋ መመሪያ',
+    details: 'Children under 6 stay free of charge using existing beds. Children aged 6-12 are charged 50% for breakfast. Extra rollaway beds are available upon request.',
+    detailsAmharic: 'ከ6 ዓመት በታች የሆኑ ህፃናት በነፃ ያርፋሉ። ከ6 እስከ 12 ዓመት ላሉ ህፃናት ለቁርስ 50% ብቻ ይከፈላል።'
+  },
+  {
+    id: 'policy-smoking',
+    title: 'Smoking & Quiet Hours',
+    titleAmharic: 'የማጨስ እና የጸጥታ ሰዓት ህግ',
+    details: 'All indoor guest rooms are strictly non-smoking. Designated smoking areas are provided in our open-air garden terraces. Quiet hours in guest corridors are 10:00 PM to 06:30 AM.',
+    detailsAmharic: 'በሁሉም የሆቴል ክፍሎች ውስጥ ማጨስ በጥብቅ የተከለከለ ነው። በአትክልት ስፍራው ላይ የተፈቀደ ቦታ አለ። የጸጥታ ሰዓት ከምሽቱ 4:00 እስከ ጠዋቱ 12:30 ነው።'
+  }
+];
+
+export const INITIAL_FAQS: FAQItem[] = [
+  {
+    id: 'faq-airport',
+    question: 'How far is Tourist Hotel from Arba Minch Airport (AMH)?',
+    questionAmharic: 'ሆቴሉ ከአርባ ምንጭ አውሮፕላን ማረፊያ ምን ያህል ይርቃል?',
+    answer: 'The hotel is located just 10 minutes (approx. 6 km) drive from Arba Minch Airport. We provide free pick-up and drop-off in our hotel shuttle for all direct reservations.',
+    answerAmharic: 'ሆቴሉ ከአውሮፕላን ማረፊያው 10 ደቂቃ ብቻ (6 ኪ.ሜ) ርቀት ላይ ይገኛል። ለሁሉም ቀጥታ ተመዝጋቢዎች ነፃ የትራንስፖርት አገልግሎት እንሰጣለን።',
+    category: 'general'
+  },
+  {
+    id: 'faq-power',
+    question: 'Do you have reliable electricity, Wi-Fi, and hot water?',
+    questionAmharic: 'አስተማማኝ መብራት፣ ኢንተርኔት እና ሙቅ ውሃ አለ?',
+    answer: 'Yes! Tourist Hotel is equipped with high-capacity automatic standby diesel power generators, solar hot water heating systems, and high-speed Wi-Fi across all rooms and garden dining areas.',
+    answerAmharic: 'አዎ! ሆቴላችን ከፍተኛ አቅም ያለው የጄኔሬተር ኃይል፣ የፀሐይ ኃይል ሙቅ ውሃ እና ፈጣን ዋይፋይ በሁሉም ክፍሎች እና አትክልት ስፍራዎች አሉት።',
+    category: 'facilities'
+  },
+  {
+    id: 'faq-boat',
+    question: 'Can you arrange the Lake Chamo Boat Safari to see giant crocodiles and hippos?',
+    questionAmharic: 'የጫሞ ሀይቅ የጀልባ ጉዞ ማመቻቸት ትችላላችሁ?',
+    answer: 'Absolutely. Our front desk travel coordinator organizes morning and afternoon private and shared motorboat excursions with licensed national park guides. The boat pier is only 18 minutes from the hotel.',
+    answerAmharic: 'በእርግጥ። የእንግዳ መቀበያችን የጉዞ አስተባባሪ በጠዋት እና ከሰዓት ፈቃድ ካላቸው የፓርኩ አስጎብኚዎች ጋር የጀልባ ጉዞዎችን ያመቻቻል።',
+    category: 'tours'
+  },
+  {
+    id: 'faq-payment',
+    question: 'What payment methods are accepted at Tourist Hotel?',
+    questionAmharic: 'ምን አይነት የክፍያ አማራጮችን ትቀበላላችሁ?',
+    answer: 'We accept Telebirr, CBE Birr, Ethiopian Commercial Bank transfers, Visa / Mastercard, and cash in Ethiopian Birr or US Dollars for foreign guests.',
+    answerAmharic: 'ቴሌብር፣ የኢትዮጵያ ንግድ ባንክ (CBE Birr)፣ ቪዛ ካርድ እና ጥሬ ገንዘብ (በኢትዮጵያ ብር ወይም ዶላር) እንቀበላለን።',
+    category: 'booking'
+  }
+];
+
+export const INITIAL_INQUIRIES: GuestInquiry[] = [
+  {
+    id: 'inq-1',
+    guestName: 'Mulugeta Tesfaye',
+    email: 'mulugeta.t@ngo-ethiopia.org',
+    phone: '+251 91 222 3344',
+    department: 'conferences',
+    dates: 'Nov 14 - 17, 2026',
+    guestsCount: 45,
+    message: 'Requesting quotation for a 3-day regional health workshop including Abaya Hall rental, projector, two coffee breaks with snacks, and buffet lunch for 45 participants.',
+    createdAt: '2026-10-04 09:30 AM',
+    status: 'New'
+  },
+  {
+    id: 'inq-2',
+    guestName: 'Sarah Jenkins',
+    email: 'sarah.j@traveluk.com',
+    phone: '+44 7700 900123',
+    department: 'reservations',
+    dates: 'Dec 02 - 06, 2026',
+    guestsCount: 4,
+    message: 'Inquiring about 2 Deluxe Lake View rooms and coordinating a combined Lake Chamo boat safari and Dorze village excursion.',
+    createdAt: '2026-10-06 02:15 PM',
+    status: 'Responded'
+  }
+];
+

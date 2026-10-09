@@ -11,6 +11,8 @@ import { EventMediaModal } from './components/EventMediaModal';
 import { ConferenceSection } from './components/ConferenceSection';
 import { AboutSection } from './components/AboutSection';
 import { ReservationModal } from './components/ReservationModal';
+import { RoomCompareModal } from './components/RoomCompareModal';
+import { GuestPortalModal } from './components/GuestPortalModal';
 import { AdminPortal } from './components/AdminPortal';
 import { Footer } from './components/Footer';
 import { Room, TourPackage } from './types';
@@ -19,6 +21,10 @@ const HotelMainContent: React.FC = () => {
   const {
     isAdminOpen,
     setIsAdminOpen,
+    isGuestPortalOpen,
+    setIsGuestPortalOpen,
+    isCompareOpen,
+    setIsCompareOpen,
     selectedRoomForBooking,
     setSelectedRoomForBooking,
     selectedRoomForDetail,
@@ -125,6 +131,26 @@ const HotelMainContent: React.FC = () => {
       <EventMediaModal
         event={selectedEventForMedia}
         onClose={() => setSelectedEventForMedia(null)}
+      />
+
+      {/* Side-by-Side Room Comparison Modal */}
+      <RoomCompareModal
+        isOpen={isCompareOpen}
+        onClose={() => setIsCompareOpen(false)}
+        onSelectRoomForBooking={(room) => {
+          setIsCompareOpen(false);
+          handleOpenBooking(room);
+        }}
+        onSelectRoomForDetail={(room) => {
+          setIsCompareOpen(false);
+          setSelectedRoomForDetail(room);
+        }}
+      />
+
+      {/* Guest Self-Service Portal (Manage Booking, Receipts & Vouchers) */}
+      <GuestPortalModal
+        isOpen={isGuestPortalOpen}
+        onClose={() => setIsGuestPortalOpen(false)}
       />
 
       {/* System Admin Content Management Portal */}

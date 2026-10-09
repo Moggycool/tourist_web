@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Menu, X, Phone, Lock, CalendarCheck, Globe } from 'lucide-react';
+import { Menu, X, Phone, Lock, CalendarCheck, Globe, FileText, Sparkles } from 'lucide-react';
 import { useHotel } from '../context/HotelContext';
 
 interface NavbarProps {
@@ -17,6 +17,8 @@ export const Navbar: React.FC<NavbarProps> = ({ onBookClick, activeSection, setA
     setLanguage,
     t,
     setIsAdminOpen,
+    setIsGuestPortalOpen,
+    setIsCompareOpen,
     bookings,
     isAdminAuthenticated,
     adminHeaderVisibility
@@ -160,7 +162,17 @@ export const Navbar: React.FC<NavbarProps> = ({ onBookClick, activeSection, setA
           </nav>
 
           {/* Zone 3: Primary Action */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
+            {/* My Booking guest lookup */}
+            <button
+              onClick={() => setIsGuestPortalOpen(true)}
+              className="px-3 py-2 text-stone-700 hover:text-stone-950 hover:bg-stone-100 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
+              title="Lookup your reservation, vouchers, and stay details"
+            >
+              <FileText className="w-3.5 h-3.5 text-amber-700" />
+              <span className="hidden sm:inline">{t('nav_my_booking')}</span>
+            </button>
+
             <button
               onClick={onBookClick}
               className="px-4.5 py-2.5 bg-amber-700 hover:bg-amber-800 active:bg-amber-900 text-white text-xs font-bold rounded-lg shadow-sm transition-all flex items-center gap-1.5 whitespace-nowrap cursor-pointer"
@@ -220,6 +232,28 @@ export const Navbar: React.FC<NavbarProps> = ({ onBookClick, activeSection, setA
                 {link.label}
               </button>
             ))}
+
+            <button
+              onClick={() => {
+                setMobileMenuOpen(false);
+                setIsCompareOpen(true);
+              }}
+              className="w-full text-left py-2.5 px-3 rounded-lg text-sm font-semibold text-amber-800 hover:bg-amber-50 flex items-center gap-2"
+            >
+              <Sparkles className="w-4 h-4 text-amber-600" />
+              <span>{t('nav_compare_rooms')}</span>
+            </button>
+
+            <button
+              onClick={() => {
+                setMobileMenuOpen(false);
+                setIsGuestPortalOpen(true);
+              }}
+              className="w-full text-left py-2.5 px-3 rounded-lg text-sm font-semibold text-amber-800 hover:bg-amber-50 flex items-center gap-2"
+            >
+              <FileText className="w-4 h-4 text-amber-600" />
+              <span>{t('nav_my_booking')} (Lookup & Vouchers)</span>
+            </button>
           </div>
 
           <div className="pt-3 border-t border-stone-100 flex items-center justify-between">

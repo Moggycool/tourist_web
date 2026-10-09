@@ -1,5 +1,26 @@
 import React, { useState } from 'react';
-import { X, Calendar, Users, BedDouble, Plane, CheckCircle2, ShieldCheck, QrCode, ArrowRight, Printer, Smartphone, CreditCard, MessageSquare, Send, Check } from 'lucide-react';
+import {
+  X,
+  Calendar,
+  Users,
+  BedDouble,
+  Plane,
+  CheckCircle2,
+  ShieldCheck,
+  QrCode,
+  ArrowRight,
+  Printer,
+  Smartphone,
+  CreditCard,
+  MessageSquare,
+  Send,
+  Check,
+  Tag,
+  Plus,
+  HelpCircle,
+  AlertCircle,
+  FileText
+} from 'lucide-react';
 import { useHotel } from '../context/HotelContext';
 import { Room, RoomBooking } from '../types';
 import { TelebirrDemoModal } from './TelebirrDemoModal';
@@ -12,28 +33,39 @@ interface ReservationModalProps {
 export const ReservationModal: React.FC<ReservationModalProps> = ({ initialRoom, onClose }) => {
   const {
     rooms,
+    addons,
+    currency,
     formatPrice,
     addBooking,
     hotelInfo,
     telebirrConfig,
+    validatePromoCode,
+    searchCriteria,
+    setIsGuestPortalOpen,
     sendReceptionWhatsAppNotification,
     sendGuestWhatsAppConfirmation
   } = useHotel();
 
   const [selectedRoomId, setSelectedRoomId] = useState<string>(
-    initialRoom ? initialRoom.id : rooms[0]?.id || ''
+    initialRoom ? initialRoom.id : (searchCriteria.category !== 'all' ? searchCriteria.category : rooms[0]?.id || '')
   );
 
-  const [checkIn, setCheckIn] = useState<string>('2026-10-12');
-  const [checkOut, setCheckOut] = useState<string>('2026-10-15');
-  const [adults, setAdults] = useState<number>(2);
-  const [childrenCount, setChildrenCount] = useState<number>(0);
+  const [checkIn, setCheckIn] = useState<string>(searchCriteria.checkIn || '2026-10-12');
+  const [checkOut, setCheckOut] = useState<string>(searchCriteria.checkOut || '2026-10-15');
+  const [adults, setAdults] = useState<number>(searchCriteria.adults || 2);
+  const [childrenCount, setChildrenCount] = useState<number>(searchCriteria.children || 0);
+  const [roomsCount, setRoomsCount] = useState<number>(searchCriteria.roomsCount || 1);
+
   const [guestName, setGuestName] = useState<string>('Daniel Haile');
   const [guestEmail, setGuestEmail] = useState<string>('daniel.haile@example.com');
   const [guestPhone, setGuestPhone] = useState<string>('+251 91 234 5678');
   const [airportPickup, setAirportPickup] = useState<boolean>(true);
   const [flightDetails, setFlightDetails] = useState<string>('Ethiopian Airlines ET135 Arba Minch');
   const [specialRequests, setSpecialRequests] = useState<string>('Quiet room facing garden or lake.');
+
+  // Promo code
+  const [promoCodeInput, setPromoCodeInput] = useState<string>(searchCriteria.promoCode || 'ARBA2026');
+  const [selectedAddonIds, setSelectedAddonIds] = useState<string[]>(['addon-airport-shuttle']);
 
   // Payment method selection
   const [paymentMethod, setPaymentMethod] = useState<'telebirr' | 'cbe_birr' | 'pay_on_arrival'>('telebirr');
@@ -57,8 +89,32 @@ export const ReservationModal: React.FC<ReservationModalProps> = ({ initialRoom,
   };
 
   const nights = calculateNights();
-  const totalPriceETB = (selectedRoom?.priceETB || 3200) * nights;
-  const totalPriceUSD = (selectedRoom?.priceUSD || 28) * nights;
+
+  // Pricing calculations
+  const baseRoomRateETB = (selectedRoom?.priceETB || 3200) * nights * roomsCount;
+  const baseRoomRateUSD = (selectedRoom?.priceUSD || 28) * nights * roomsCount;
+
+  // Addons total
+  const selectedAddonsList = addons.filter(a => selectedAddonIds.includes(a.id));
+  const addonsTotalETB = selectedAddonsList.reduce((acc, a) => acc + a.priceETB, 0);
+  const addonsTotalUSD = selectedAddonsList.reduce((acc, a) => acc + a.priceUSD, 0);
+
+  // Promo discount
+  const validPromo = promoCodeInput.trim() ? validatePromoCode(promoCodeInput.trim()) : null;
+  const discountPercent = validPromo ? validPromo.discountPercent : 0;
+  const discountETB = Math.round((baseRoomRateETB * discountPercent) / 100);
+  const discountUSD = Math.round((baseRoomRateUSD * discountPercent) / 100);
+
+  const subtotalETB = baseRoomRateETB + addonsTotalETB - discountETB;
+  const subtotalUSD = baseRoomRateUSD + addonsTotalUSD - discountUSD;
+
+  // Taxes: VAT (15%) & Service Charge (10%) included in transparent total
+  const totalPriceETB = Math.max(0, subtotalETB);
+  const totalPriceUSD = Math.max(0, subtotalUSD);
+
+  const toggleAddon = (id: string) => {
+    setSelectedAddonIds(prev => (prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]));
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -68,6 +124,7 @@ export const ReservationModal: React.FC<ReservationModalProps> = ({ initialRoom,
       bookingRef: ref,
       roomId: selectedRoom.id,
       roomName: selectedRoom.name,
+      roomCount: roomsCount,
       guestName,
       guestEmail,
       guestPhone,
@@ -78,12 +135,17 @@ export const ReservationModal: React.FC<ReservationModalProps> = ({ initialRoom,
       totalNights: nights,
       totalPriceETB,
       totalPriceUSD,
+      promoCode: validPromo ? validPromo.code : undefined,
+      discountETB,
+      discountUSD,
+      selectedAddons: selectedAddonIds,
       specialRequests,
-      airportPickupRequested: airportPickup,
+      airportPickupRequested: airportPickup || selectedAddonIds.includes('addon-airport-shuttle'),
       flightDetails: airportPickup ? flightDetails : undefined,
       paymentMethod,
-      paymentStatus: paymentMethod === 'pay_on_arrival' ? 'Pay on Arrival' : (telebirrTxnId ? 'Paid' : 'Pending'),
-      telebirrTxnId: telebirrTxnId || (paymentMethod === 'telebirr' ? `TB-${Math.floor(1000000 + Math.random() * 9000000)}` : undefined),
+      paymentStatus: paymentMethod === 'pay_on_arrival' ? 'Pay on Arrival' : telebirrTxnId ? 'Paid' : 'Pending',
+      telebirrTxnId:
+        telebirrTxnId || (paymentMethod === 'telebirr' ? `TB-${Math.floor(1000000 + Math.random() * 9000000)}` : undefined),
       telebirrPhone: guestPhone
     });
 
@@ -142,8 +204,8 @@ export const ReservationModal: React.FC<ReservationModalProps> = ({ initialRoom,
                 </select>
               </div>
 
-              {/* Dates Row */}
-              <div className="grid grid-cols-2 gap-3">
+              {/* Dates & Rooms Row */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 <div>
                   <label className="block text-xs font-bold text-stone-700 mb-1">Check-in Date</label>
                   <input
@@ -165,6 +227,20 @@ export const ReservationModal: React.FC<ReservationModalProps> = ({ initialRoom,
                     required
                   />
                 </div>
+
+                <div className="col-span-2 sm:col-span-1">
+                  <label className="block text-xs font-bold text-stone-700 mb-1">Number of Rooms</label>
+                  <select
+                    value={roomsCount}
+                    onChange={(e) => setRoomsCount(Number(e.target.value))}
+                    className="w-full bg-stone-50 border border-stone-300 rounded-xl px-3 py-2 text-xs font-semibold"
+                  >
+                    <option value={1}>1 Room</option>
+                    <option value={2}>2 Rooms</option>
+                    <option value={3}>3 Rooms</option>
+                    <option value={4}>4 Rooms</option>
+                  </select>
+                </div>
               </div>
 
               {/* Guests */}
@@ -180,6 +256,7 @@ export const ReservationModal: React.FC<ReservationModalProps> = ({ initialRoom,
                     <option value={2}>2 Adults</option>
                     <option value={3}>3 Adults</option>
                     <option value={4}>4 Adults</option>
+                    <option value={6}>6 Adults (Group)</option>
                   </select>
                 </div>
 
@@ -193,7 +270,94 @@ export const ReservationModal: React.FC<ReservationModalProps> = ({ initialRoom,
                     <option value={0}>0 Children</option>
                     <option value={1}>1 Child</option>
                     <option value={2}>2 Children</option>
+                    <option value={3}>3 Children</option>
                   </select>
+                </div>
+              </div>
+
+              {/* Optional Add-on Services & Experiences */}
+              <div className="space-y-2 pt-2 border-t border-stone-100">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold text-stone-700 flex items-center gap-1.5">
+                    <Plus className="w-4 h-4 text-amber-700" />
+                    <span>Optional Add-ons & Stay Enhancements</span>
+                  </label>
+                  <span className="text-[10px] text-stone-500">Customise your visit</span>
+                </div>
+
+                <div className="space-y-2">
+                  {addons.map((addon) => {
+                    const isChecked = selectedAddonIds.includes(addon.id);
+                    return (
+                      <div
+                        key={addon.id}
+                        onClick={() => toggleAddon(addon.id)}
+                        className={`p-2.5 rounded-xl border transition-all cursor-pointer flex items-center justify-between gap-3 text-xs ${
+                          isChecked
+                            ? 'bg-amber-50/80 border-amber-300 text-stone-900'
+                            : 'bg-stone-50 border-stone-200 text-stone-600 hover:border-stone-300'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2.5">
+                          <input
+                            type="checkbox"
+                            checked={isChecked}
+                            onChange={() => {}} // handled by parent onClick
+                            className="w-4 h-4 rounded text-amber-700 focus:ring-amber-600"
+                          />
+                          <div>
+                            <span className="font-bold text-stone-900 block">{addon.name}</span>
+                            <span className="text-[10px] text-stone-500 block">{addon.description}</span>
+                          </div>
+                        </div>
+                        <div className="text-right shrink-0">
+                          {addon.priceETB === 0 ? (
+                            <span className="text-emerald-700 font-bold text-[11px] bg-emerald-50 px-2 py-0.5 rounded-md">
+                              Included Free
+                            </span>
+                          ) : (
+                            <span className="font-bold text-amber-900">
+                              +{formatPrice(addon.priceETB, addon.priceUSD)}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Promo Code Voucher Box */}
+              <div className="p-3 bg-stone-50 rounded-2xl border border-stone-200 space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold text-stone-800 flex items-center gap-1.5">
+                    <Tag className="w-3.5 h-3.5 text-amber-700" />
+                    <span>Promo or Discount Code</span>
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setPromoCodeInput('ARBA2026')}
+                    className="text-[10px] text-amber-800 hover:underline font-semibold"
+                  >
+                    Try code: <strong>ARBA2026</strong> (15% Off)
+                  </button>
+                </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    value={promoCodeInput}
+                    onChange={(e) => setPromoCodeInput(e.target.value.toUpperCase())}
+                    placeholder="e.g. ARBA2026 or WELCOME10"
+                    className="flex-1 bg-white border border-stone-300 rounded-xl px-3 py-1.5 text-xs font-mono font-bold tracking-wider focus:outline-hidden focus:ring-2 focus:ring-amber-600"
+                  />
+                  {validPromo ? (
+                    <span className="px-2.5 py-1.5 bg-emerald-100 text-emerald-800 font-bold text-xs rounded-xl flex items-center gap-1 shrink-0">
+                      <Check className="w-3.5 h-3.5" />
+                      <span>{validPromo.discountPercent}% Off</span>
+                    </span>
+                  ) : promoCodeInput.trim() ? (
+                    <span className="px-2 py-1 text-rose-600 text-[10px] font-bold">Invalid</span>
+                  ) : null}
                 </div>
               </div>
 
@@ -238,6 +402,17 @@ export const ReservationModal: React.FC<ReservationModalProps> = ({ initialRoom,
                       required
                     />
                   </div>
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-stone-700 mb-1">Special Requests or Needs</label>
+                  <textarea
+                    rows={2}
+                    value={specialRequests}
+                    onChange={(e) => setSpecialRequests(e.target.value)}
+                    placeholder="E.g., high floor room, quiet view, extra pillows, late check-in..."
+                    className="w-full bg-stone-50 border border-stone-300 rounded-xl p-2.5 text-xs text-stone-800 focus:outline-hidden focus:ring-2 focus:ring-amber-600"
+                  />
                 </div>
               </div>
 
@@ -388,21 +563,69 @@ export const ReservationModal: React.FC<ReservationModalProps> = ({ initialRoom,
                     <p className="text-[11px] text-stone-700">Dial <strong>*847#</strong> or use CBE Birr App. Select <em>Pay Merchant</em> and enter Hotel Shortcode: <strong>982144</strong>.</p>
                   </div>
                 )}
+
+                {paymentMethod === 'pay_on_arrival' && (
+                  <div className="p-4 bg-emerald-50/90 border border-emerald-200 rounded-2xl space-y-2 text-xs text-emerald-950 animate-fadeIn">
+                    <div className="flex items-center gap-1.5 font-bold text-emerald-900">
+                      <ShieldCheck className="w-4 h-4 text-emerald-700" />
+                      <span>Zero Risk · 48-Hour Free Cancellation Policy</span>
+                    </div>
+                    <p className="text-[11px] text-stone-700">
+                      No credit card or advance deposit required today. Your booking is confirmed and guaranteed. You can settle the payment in ETB (cash, Telebirr, CBE Birr) or USD upon arrival at the Tourist Hotel front desk.
+                    </p>
+                    <p className="text-[10px] text-emerald-800 font-medium">
+                      ✓ Free cancellation up to 48 hours before check-in.
+                    </p>
+                  </div>
+                )}
               </div>
 
               {/* Price Summary */}
-              <div className="bg-amber-50/80 p-4 rounded-2xl border border-amber-200/80 text-xs space-y-1.5">
+              <div className="bg-amber-50/80 p-4 rounded-2xl border border-amber-200/80 text-xs space-y-2">
                 <div className="flex justify-between text-stone-700">
-                  <span>{selectedRoom?.name} ({nights} {nights === 1 ? 'night' : 'nights'})</span>
-                  <span className="font-semibold">{formatPrice(totalPriceETB, totalPriceUSD)}</span>
+                  <span>
+                    {selectedRoom?.name} ({nights} {nights === 1 ? 'night' : 'nights'} × {roomsCount} {roomsCount === 1 ? 'room' : 'rooms'})
+                  </span>
+                  <span className="font-semibold">{formatPrice(baseRoomRateETB, baseRoomRateUSD)}</span>
                 </div>
-                <div className="flex justify-between text-stone-700">
-                  <span>Buffet Breakfast & Wi-Fi</span>
+
+                {selectedAddonsList.length > 0 && (
+                  <div className="space-y-1 pt-1.5 border-t border-amber-200/60">
+                    <span className="text-[10px] uppercase font-bold text-stone-500 block">Selected Add-ons</span>
+                    {selectedAddonsList.map(a => (
+                      <div key={a.id} className="flex justify-between text-stone-600 text-[11px]">
+                        <span>• {a.name}</span>
+                        <span>{a.priceETB === 0 ? 'Free' : `+${formatPrice(a.priceETB, a.priceUSD)}`}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {validPromo && discountETB > 0 && (
+                  <div className="flex justify-between text-emerald-800 font-semibold pt-1 border-t border-amber-200/60">
+                    <span>Promo Discount ({validPromo.code} - {validPromo.discountPercent}% Off)</span>
+                    <span>-{formatPrice(discountETB, discountUSD)}</span>
+                  </div>
+                )}
+
+                <div className="flex justify-between text-stone-600 text-[11px]">
+                  <span>Buffet Breakfast & High-Speed Wi-Fi</span>
                   <span className="text-emerald-700 font-bold">Included Free</span>
                 </div>
-                <div className="pt-2 border-t border-amber-200 flex justify-between font-black text-sm text-stone-900">
+
+                <div className="flex justify-between text-stone-500 text-[10px] pt-1 border-t border-amber-200/60">
+                  <span>Taxes (15% VAT & 10% Service Charge)</span>
+                  <span>Included</span>
+                </div>
+
+                <div className="pt-2 border-t border-amber-200 flex justify-between items-baseline font-black text-sm text-stone-900">
                   <span>Total Payable</span>
-                  <span className="text-amber-800">{formatPrice(totalPriceETB, totalPriceUSD)}</span>
+                  <div className="text-right">
+                    <span className="text-amber-800 block text-base">{formatPrice(totalPriceETB, totalPriceUSD)}</span>
+                    <span className="text-[10px] font-normal text-stone-500 block">
+                      {currency === 'ETB' ? `≈ $${totalPriceUSD} USD` : `≈ ${totalPriceETB.toLocaleString()} ETB`}
+                    </span>
+                  </div>
                 </div>
               </div>
 
@@ -507,18 +730,29 @@ export const ReservationModal: React.FC<ReservationModalProps> = ({ initialRoom,
               </div>
 
               {/* Actions Footer */}
-              <div className="flex items-center gap-3">
+              <div className="flex flex-col sm:flex-row items-center gap-2.5">
                 <button
                   onClick={handlePrintVoucher}
-                  className="flex-1 py-2.5 bg-stone-100 hover:bg-stone-200 text-stone-800 text-xs font-bold rounded-xl flex items-center justify-center gap-2 transition-colors cursor-pointer"
+                  className="w-full sm:flex-1 py-2.5 bg-stone-100 hover:bg-stone-200 text-stone-800 text-xs font-bold rounded-xl flex items-center justify-center gap-2 transition-colors cursor-pointer"
                 >
                   <Printer className="w-4 h-4" />
                   <span>Print Voucher</span>
                 </button>
 
                 <button
+                  onClick={() => {
+                    onClose();
+                    setIsGuestPortalOpen(true);
+                  }}
+                  className="w-full sm:flex-1 py-2.5 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 text-xs font-bold rounded-xl flex items-center justify-center gap-2 transition-colors cursor-pointer"
+                >
+                  <FileText className="w-4 h-4 text-amber-700" />
+                  <span>Open Guest Portal</span>
+                </button>
+
+                <button
                   onClick={onClose}
-                  className="flex-1 py-2.5 bg-stone-900 hover:bg-stone-800 text-white text-xs font-bold rounded-xl cursor-pointer"
+                  className="w-full sm:flex-1 py-2.5 bg-stone-900 hover:bg-stone-800 text-white text-xs font-bold rounded-xl cursor-pointer"
                 >
                   Done
                 </button>
