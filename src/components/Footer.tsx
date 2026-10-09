@@ -7,7 +7,7 @@ interface FooterProps {
 }
 
 export const Footer: React.FC<FooterProps> = ({ onNavClick }) => {
-  const { hotelInfo, setIsAdminOpen, setIsGuestPortalOpen, setIsCompareOpen, t } = useHotel();
+  const { hotelInfo, setIsAdminOpen, setIsGuestPortalOpen, setIsCompareOpen, openFeedbackModal, t } = useHotel();
 
   return (
     <footer className="bg-stone-950 text-stone-400 border-t border-stone-800 text-xs">
@@ -65,6 +65,19 @@ export const Footer: React.FC<FooterProps> = ({ onNavClick }) => {
               <li>
                 <button onClick={() => onNavClick('tours')} className="hover:text-white transition-colors cursor-pointer">
                   {t('nav_tours')}
+                </button>
+              </li>
+              <li>
+                <button onClick={() => onNavClick('reviews')} className="hover:text-white transition-colors cursor-pointer">
+                  Guest Reviews & Ratings
+                </button>
+              </li>
+              <li>
+                <button
+                  onClick={() => openFeedbackModal()}
+                  className="text-amber-400 hover:text-amber-300 font-medium transition-colors cursor-pointer"
+                >
+                  Post-Stay Feedback (15% Off)
                 </button>
               </li>
               <li>

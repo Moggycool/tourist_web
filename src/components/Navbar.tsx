@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Menu, X, Phone, Lock, CalendarCheck, Globe, FileText, Sparkles } from 'lucide-react';
+import { Menu, X, Phone, Lock, CalendarCheck, Globe, FileText, Sparkles, Star } from 'lucide-react';
 import { useHotel } from '../context/HotelContext';
 
 interface NavbarProps {
@@ -19,6 +19,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onBookClick, activeSection, setA
     setIsAdminOpen,
     setIsGuestPortalOpen,
     setIsCompareOpen,
+    openFeedbackModal,
     bookings,
     isAdminAuthenticated,
     adminHeaderVisibility
@@ -33,6 +34,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onBookClick, activeSection, setA
     { id: 'rooms', label: t('nav_rooms') },
     { id: 'dining', label: t('nav_dining') },
     { id: 'tours', label: t('nav_tours') },
+    { id: 'reviews', label: t('nav_reviews') },
     { id: 'events', label: t('nav_events') },
     { id: 'meetings', label: t('nav_meetings') },
     { id: 'about', label: t('nav_about') },
@@ -253,6 +255,17 @@ export const Navbar: React.FC<NavbarProps> = ({ onBookClick, activeSection, setA
             >
               <FileText className="w-4 h-4 text-amber-600" />
               <span>{t('nav_my_booking')} (Lookup & Vouchers)</span>
+            </button>
+
+            <button
+              onClick={() => {
+                setMobileMenuOpen(false);
+                openFeedbackModal();
+              }}
+              className="w-full text-left py-2.5 px-3 rounded-lg text-sm font-semibold text-amber-800 hover:bg-amber-50 flex items-center gap-2"
+            >
+              <Star className="w-4 h-4 text-amber-600 fill-amber-500" />
+              <span>{t('nav_feedback')} (Get 15% Voucher)</span>
             </button>
           </div>
 

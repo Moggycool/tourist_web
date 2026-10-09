@@ -189,3 +189,36 @@ export interface HotelEvent {
   location?: string;
   featured?: boolean;
 }
+
+export interface PostStayFeedback {
+  id: string;
+  bookingRef: string;
+  guestName: string;
+  guestEmail: string;
+  guestCountry?: string;
+  roomName: string;
+  stayMonthYear: string;
+  ratingOverall: number; // 1 to 5
+  ratings: {
+    cleanliness: number;
+    hospitality: number;
+    diningFood: number;
+    lakeTourSafari: number;
+    wifiComfort: number;
+    valueForMoney: number;
+  };
+  title: string;
+  comments: string;
+  favoriteHighlight?: string;
+  staffCompliment?: string;
+  wouldRecommend: boolean;
+  travelType: 'couple' | 'solo' | 'family' | 'business' | 'safari_group';
+  verifiedStay: boolean;
+  status: 'Published' | 'Pending' | 'Flagged';
+  managementResponse?: {
+    responderName: string;
+    responseText: string;
+    responseDate: string;
+  };
+  createdAt: string;
+}

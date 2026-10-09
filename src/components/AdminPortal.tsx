@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
-import { X, Lock, Save, Plus, Trash2, BedDouble, Compass, Utensils, Download, Upload, RefreshCw, CheckCircle, Film, Image as ImageIcon, Video, Calendar, MapPin, Eye, ShieldCheck, Key, LogOut, Settings, HelpCircle, Smartphone, Send, MessageSquare, Tag, UserPlus } from 'lucide-react';
+import { X, Lock, Save, Plus, Trash2, BedDouble, Compass, Utensils, Download, Upload, RefreshCw, CheckCircle, Film, Image as ImageIcon, Video, Calendar, MapPin, Eye, ShieldCheck, Key, LogOut, Settings, HelpCircle, Smartphone, Send, MessageSquare, Tag, UserPlus, Star, ThumbsUp, Building2, Award } from 'lucide-react';
 import { useHotel } from '../context/HotelContext';
-import { Room, TourPackage, MenuItem, HotelInfo, HotelEvent } from '../types';
+import { Room, TourPackage, MenuItem, HotelInfo, HotelEvent, PostStayFeedback } from '../types';
 import { TelebirrDemoModal } from './TelebirrDemoModal';
 
 interface AdminPortalProps {
@@ -30,6 +30,10 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ isOpen, onClose }) => 
     deleteBooking,
     inquiries,
     updateInquiryStatus,
+    feedbacks,
+    updateFeedbackStatus,
+    respondToFeedback,
+    deleteFeedback,
     promoCodes,
     togglePromoCodeActive,
     resetToDefaults,
@@ -50,8 +54,14 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ isOpen, onClose }) => 
     clearNotifications
   } = useHotel();
 
-  const [activeTab, setActiveTab] = useState<'info' | 'rooms' | 'tours' | 'dining' | 'events' | 'bookings' | 'inquiries' | 'promos' | 'notifications' | 'security' | 'backup'>('events');
+  const [activeTab, setActiveTab] = useState<'info' | 'rooms' | 'tours' | 'dining' | 'events' | 'bookings' | 'inquiries' | 'promos' | 'feedback' | 'notifications' | 'security' | 'backup'>('events');
   const [saveToast, setSaveToast] = useState<string | null>(null);
+
+  // Feedback Reply State
+  const [replyingFeedbackId, setReplyingFeedbackId] = useState<string | null>(null);
+  const [replyText, setReplyText] = useState<string>('');
+  const [replyResponderName, setReplyResponderName] = useState<string>('General Manager · Tourist Hotel Arba Minch');
+  const [feedbackFilter, setFeedbackFilter] = useState<'all' | 'Published' | 'Pending' | 'Flagged'>('all');
 
   // Telebirr Vendor Simulator in Admin
   const [isAdminTelebirrDemoOpen, setIsAdminTelebirrDemoOpen] = useState(false);
@@ -480,6 +490,19 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ isOpen, onClose }) => 
             <span>Promo Codes</span>
             <span className="w-4 h-4 rounded-full bg-stone-200 text-stone-800 text-[10px] flex items-center justify-center font-bold">
               {promoCodes.length}
+            </span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('feedback')}
+            className={`px-3.5 py-1.5 rounded-lg transition-colors whitespace-nowrap flex items-center gap-1.5 ${
+              activeTab === 'feedback' ? 'bg-amber-100 text-amber-950 shadow-xs font-bold' : 'text-stone-600 hover:text-stone-900'
+            }`}
+          >
+            <Star className="w-3.5 h-3.5 text-amber-600 fill-amber-500" />
+            <span>Post-Stay Reviews</span>
+            <span className="w-4 h-4 rounded-full bg-amber-600 text-white text-[10px] flex items-center justify-center font-bold">
+              {feedbacks.length}
             </span>
           </button>
 
@@ -1603,6 +1626,341 @@ export const AdminPortal: React.FC<AdminPortalProps> = ({ isOpen, onClose }) => 
                   </div>
                 ))}
               </div>
+            </div>
+          )}
+
+          {/* TAB: POST-STAY GUEST SATISFACTION FEEDBACK & REVIEWS */}
+          {activeTab === 'feedback' && (
+            <div className="space-y-6">
+              {/* Header */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div>
+                  <h4 className="text-base font-bold text-stone-900 flex items-center gap-2">
+                    <Star className="w-5 h-5 fill-amber-500 text-amber-500" />
+                    <span>Post-Stay Guest Satisfaction & Reviews Management</span>
+                  </h4>
+                  <p className="text-xs text-stone-500">
+                    Monitor overall guest sentiment, verify stays, moderate reviews, and publish official management replies.
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-bold text-amber-900 bg-amber-100 px-3 py-1 rounded-xl border border-amber-300">
+                    {feedbacks.length} Total Reviews
+                  </span>
+                </div>
+              </div>
+
+              {/* KPI Summary Cards */}
+              {(() => {
+                const total = feedbacks.length;
+                const avg = total > 0 ? (feedbacks.reduce((sum, f) => sum + f.ratingOverall, 0) / total).toFixed(1) : '5.0';
+                const rec = total > 0 ? Math.round((feedbacks.filter(f => f.wouldRecommend).length / total) * 100) : 100;
+                const verified = feedbacks.filter(f => f.verifiedStay).length;
+                return (
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+                    <div className="p-4 bg-amber-50 border border-amber-200 rounded-2xl">
+                      <span className="text-stone-500 block text-[11px] uppercase font-bold">Average Satisfaction</span>
+                      <div className="flex items-center gap-1.5 mt-1">
+                        <span className="text-2xl font-black text-amber-950 font-mono">{avg}</span>
+                        <span className="text-stone-500 text-xs">/ 5.0</span>
+                        <Star className="w-4 h-4 fill-amber-400 text-amber-400 ml-1" />
+                      </div>
+                    </div>
+
+                    <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl">
+                      <span className="text-stone-500 block text-[11px] uppercase font-bold">Recommendation Rate</span>
+                      <div className="flex items-center gap-1.5 mt-1">
+                        <span className="text-2xl font-black text-emerald-950 font-mono">{rec}%</span>
+                        <ThumbsUp className="w-4 h-4 text-emerald-600 ml-1" />
+                      </div>
+                    </div>
+
+                    <div className="p-4 bg-blue-50 border border-blue-200 rounded-2xl">
+                      <span className="text-stone-500 block text-[11px] uppercase font-bold">Verified Stays</span>
+                      <div className="flex items-center gap-1.5 mt-1">
+                        <span className="text-2xl font-black text-blue-950 font-mono">{verified}</span>
+                        <span className="text-stone-500 text-xs">/ {total}</span>
+                      </div>
+                    </div>
+
+                    <div className="p-4 bg-stone-100 border border-stone-200 rounded-2xl">
+                      <span className="text-stone-500 block text-[11px] uppercase font-bold">Management Replies</span>
+                      <div className="flex items-center gap-1.5 mt-1">
+                        <span className="text-2xl font-black text-stone-900 font-mono">
+                          {feedbacks.filter(f => f.managementResponse).length}
+                        </span>
+                        <span className="text-stone-500 text-xs">Answered</span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
+
+              {/* Status Filter Tabs */}
+              <div className="flex items-center gap-2 border-b border-stone-200 pb-3 text-xs">
+                {(['all', 'Published', 'Pending', 'Flagged'] as const).map(tab => (
+                  <button
+                    key={tab}
+                    onClick={() => setFeedbackFilter(tab)}
+                    className={`px-3 py-1.5 rounded-lg font-bold transition-colors cursor-pointer ${
+                      feedbackFilter === tab
+                        ? 'bg-stone-900 text-white'
+                        : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
+                    }`}
+                  >
+                    {tab === 'all' ? 'All Reviews' : tab}
+                    <span className="ml-1 text-[10px] opacity-80">
+                      ({tab === 'all' ? feedbacks.length : feedbacks.filter(f => f.status === tab).length})
+                    </span>
+                  </button>
+                ))}
+              </div>
+
+              {/* Feedback Items List */}
+              {feedbacks.filter(f => feedbackFilter === 'all' || f.status === feedbackFilter).length === 0 ? (
+                <div className="p-12 text-center text-xs text-stone-400 bg-stone-50 rounded-2xl border border-stone-200">
+                  No post-stay reviews matching this filter.
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {feedbacks
+                    .filter(f => feedbackFilter === 'all' || f.status === feedbackFilter)
+                    .map(fb => (
+                      <div
+                        key={fb.id}
+                        className={`p-5 rounded-2xl border text-xs space-y-4 transition-all ${
+                          fb.status === 'Flagged'
+                            ? 'bg-rose-50/50 border-rose-300'
+                            : fb.status === 'Pending'
+                            ? 'bg-amber-50/50 border-amber-300'
+                            : 'bg-white border-stone-200 shadow-xs'
+                        }`}
+                      >
+                        {/* Review Top Bar */}
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-stone-100 pb-3">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="font-extrabold text-stone-900 text-sm">{fb.guestName}</span>
+                            <span className="text-[11px] text-stone-500 font-mono">Ref: {fb.bookingRef}</span>
+                            {fb.verifiedStay && (
+                              <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                                ✓ Verified Stay
+                              </span>
+                            )}
+                            <span className="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-stone-100 text-stone-700">
+                              {fb.roomName}
+                            </span>
+                            <span className="px-2 py-0.5 rounded-md text-[10px] bg-stone-100 text-stone-600 capitalize">
+                              {fb.travelType.replace('_', ' ')}
+                            </span>
+                          </div>
+
+                          <div className="flex items-center gap-2">
+                            {/* Stars */}
+                            <div className="flex items-center gap-0.5 bg-amber-50 px-2 py-0.5 rounded-lg border border-amber-200">
+                              {[1, 2, 3, 4, 5].map(s => (
+                                <Star
+                                  key={s}
+                                  className={`w-3.5 h-3.5 ${
+                                    s <= fb.ratingOverall ? 'fill-amber-400 text-amber-400' : 'text-stone-300'
+                                  }`}
+                                />
+                              ))}
+                              <span className="font-bold text-amber-950 ml-1 text-xs">{fb.ratingOverall}/5</span>
+                            </div>
+
+                            {/* Status badge */}
+                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                              fb.status === 'Published'
+                                ? 'bg-emerald-100 text-emerald-900'
+                                : fb.status === 'Pending'
+                                ? 'bg-amber-100 text-amber-900'
+                                : 'bg-rose-100 text-rose-900'
+                            }`}>
+                              {fb.status}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Aspect Criteria Scores */}
+                        <div className="grid grid-cols-2 sm:grid-cols-6 gap-2 text-[11px] bg-stone-50 p-2.5 rounded-xl border border-stone-200">
+                          <div>
+                            <span className="text-stone-500 block text-[10px]">Cleanliness</span>
+                            <span className="font-bold text-stone-900">{fb.ratings.cleanliness} / 5</span>
+                          </div>
+                          <div>
+                            <span className="text-stone-500 block text-[10px]">Hospitality</span>
+                            <span className="font-bold text-stone-900">{fb.ratings.hospitality} / 5</span>
+                          </div>
+                          <div>
+                            <span className="text-stone-500 block text-[10px]">Dining & Fish</span>
+                            <span className="font-bold text-stone-900">{fb.ratings.diningFood} / 5</span>
+                          </div>
+                          <div>
+                            <span className="text-stone-500 block text-[10px]">Lake Safari</span>
+                            <span className="font-bold text-stone-900">{fb.ratings.lakeTourSafari} / 5</span>
+                          </div>
+                          <div>
+                            <span className="text-stone-500 block text-[10px]">Comfort & Power</span>
+                            <span className="font-bold text-stone-900">{fb.ratings.wifiComfort} / 5</span>
+                          </div>
+                          <div>
+                            <span className="text-stone-500 block text-[10px]">Value</span>
+                            <span className="font-bold text-stone-900">{fb.ratings.valueForMoney} / 5</span>
+                          </div>
+                        </div>
+
+                        {/* Review Content */}
+                        <div className="space-y-1">
+                          <h5 className="font-bold text-stone-900 text-sm">"{fb.title}"</h5>
+                          <p className="text-stone-700 leading-relaxed text-xs">{fb.comments}</p>
+                        </div>
+
+                        {/* Details: Highlight & Compliment */}
+                        {(fb.favoriteHighlight || fb.staffCompliment) && (
+                          <div className="flex flex-wrap gap-3 text-[11px] pt-1">
+                            {fb.favoriteHighlight && (
+                              <span className="text-stone-700">
+                                <strong className="text-amber-900">Favorite Moment:</strong> {fb.favoriteHighlight}
+                              </span>
+                            )}
+                            {fb.staffCompliment && (
+                              <span className="text-stone-700">
+                                <strong className="text-stone-900">Staff Praised:</strong> {fb.staffCompliment}
+                              </span>
+                            )}
+                          </div>
+                        )}
+
+                        {/* Management Response Section */}
+                        {fb.managementResponse ? (
+                          <div className="p-3.5 bg-stone-50 rounded-xl border border-stone-200 space-y-1">
+                            <div className="flex items-center justify-between text-[11px]">
+                              <span className="font-bold text-stone-900 flex items-center gap-1.5">
+                                <Building2 className="w-3.5 h-3.5 text-amber-700" />
+                                <span>{fb.managementResponse.responderName}</span>
+                              </span>
+                              <span className="text-stone-400">{fb.managementResponse.responseDate}</span>
+                            </div>
+                            <p className="text-stone-600 text-xs italic">
+                              "{fb.managementResponse.responseText}"
+                            </p>
+                            <div className="pt-1 flex justify-end">
+                              <button
+                                onClick={() => {
+                                  setReplyingFeedbackId(fb.id);
+                                  setReplyText(fb.managementResponse?.responseText || '');
+                                }}
+                                className="text-[11px] text-amber-700 font-semibold hover:underline cursor-pointer"
+                              >
+                                Edit Response
+                              </button>
+                            </div>
+                          </div>
+                        ) : null}
+
+                        {/* Reply Form (if open for this feedback) */}
+                        {replyingFeedbackId === fb.id && (
+                          <div className="p-3.5 bg-amber-50/80 rounded-xl border border-amber-300 space-y-2 animate-fadeIn">
+                            <span className="font-bold text-stone-900 text-xs block">
+                              Write Official Management Response to {fb.guestName}
+                            </span>
+                            <input
+                              type="text"
+                              value={replyResponderName}
+                              onChange={(e) => setReplyResponderName(e.target.value)}
+                              placeholder="Responder Title (e.g. General Manager · Tourist Hotel Arba Minch)"
+                              className="w-full bg-white border border-amber-300 rounded-lg px-2.5 py-1 text-xs"
+                            />
+                            <textarea
+                              rows={2}
+                              value={replyText}
+                              onChange={(e) => setReplyText(e.target.value)}
+                              placeholder={`Dear ${fb.guestName}, thank you for your kind feedback about Tourist Hotel Arba Minch...`}
+                              className="w-full bg-white border border-amber-300 rounded-lg p-2 text-xs"
+                            />
+                            <div className="flex items-center justify-end gap-2">
+                              <button
+                                onClick={() => setReplyingFeedbackId(null)}
+                                className="px-3 py-1 bg-white border border-stone-300 rounded-lg text-xs font-semibold cursor-pointer"
+                              >
+                                Cancel
+                              </button>
+                              <button
+                                onClick={() => {
+                                  if (!replyText.trim()) return;
+                                  respondToFeedback(fb.id, replyText.trim(), replyResponderName.trim());
+                                  setReplyingFeedbackId(null);
+                                  setReplyText('');
+                                  setSaveToast('Management reply saved and published!');
+                                  setTimeout(() => setSaveToast(null), 3000);
+                                }}
+                                className="px-3.5 py-1 bg-amber-700 hover:bg-amber-800 text-white rounded-lg text-xs font-bold cursor-pointer"
+                              >
+                                Save & Publish Reply
+                              </button>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Action Buttons */}
+                        <div className="flex items-center justify-between pt-2 border-t border-stone-100">
+                          <div className="flex items-center gap-2">
+                            {/* Toggle Publish / Unpublish */}
+                            <button
+                              onClick={() => {
+                                const newStatus = fb.status === 'Published' ? 'Pending' : 'Published';
+                                updateFeedbackStatus(fb.id, newStatus);
+                              }}
+                              className={`px-3 py-1 rounded-lg text-xs font-semibold transition-colors cursor-pointer border ${
+                                fb.status === 'Published'
+                                  ? 'bg-stone-100 hover:bg-stone-200 text-stone-700 border-stone-300'
+                                  : 'bg-emerald-600 hover:bg-emerald-700 text-white border-emerald-600'
+                              }`}
+                            >
+                              {fb.status === 'Published' ? 'Unpublish' : 'Publish Review'}
+                            </button>
+
+                            {/* Reply button */}
+                            {replyingFeedbackId !== fb.id && !fb.managementResponse && (
+                              <button
+                                onClick={() => {
+                                  setReplyingFeedbackId(fb.id);
+                                  setReplyText(`Dear ${fb.guestName}, thank you for taking the time to review your stay with us at Tourist Hotel Arba Minch! We are delighted that you had a wonderful experience.`);
+                                }}
+                                className="px-3 py-1 bg-white hover:bg-amber-50 text-amber-800 border border-amber-300 rounded-lg text-xs font-semibold cursor-pointer"
+                              >
+                                + Add Management Reply
+                              </button>
+                            )}
+
+                            {/* Flag button */}
+                            <button
+                              onClick={() => {
+                                const nextStatus = fb.status === 'Flagged' ? 'Published' : 'Flagged';
+                                updateFeedbackStatus(fb.id, nextStatus);
+                              }}
+                              className="px-2.5 py-1 text-stone-500 hover:text-stone-900 rounded-lg text-xs cursor-pointer"
+                            >
+                              {fb.status === 'Flagged' ? 'Unflag' : 'Flag for Inspection'}
+                            </button>
+                          </div>
+
+                          <button
+                            onClick={() => {
+                              if (window.confirm(`Delete review from ${fb.guestName}?`)) {
+                                deleteFeedback(fb.id);
+                              }
+                            }}
+                            className="p-1.5 text-stone-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
+                            title="Delete Review"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                </div>
+              )}
             </div>
           )}
 

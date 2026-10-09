@@ -1,4 +1,4 @@
-import { HotelInfo, Room, TourPackage, MenuItem, ConferenceHall, HotelEvent, TelebirrMerchantConfig, NotificationLog, BookingAddon, PromoCode, GuestInquiry, HotelPolicyItem, FAQItem } from '../types';
+import { HotelInfo, Room, TourPackage, MenuItem, ConferenceHall, HotelEvent, TelebirrMerchantConfig, NotificationLog, BookingAddon, PromoCode, GuestInquiry, HotelPolicyItem, FAQItem, PostStayFeedback } from '../types';
 
 export const INITIAL_TELEBIRR_CONFIG: TelebirrMerchantConfig = {
   merchantName: 'Tourist Hotel Arba Minch',
@@ -530,6 +530,127 @@ export const INITIAL_INQUIRIES: GuestInquiry[] = [
     message: 'Inquiring about 2 Deluxe Lake View rooms and coordinating a combined Lake Chamo boat safari and Dorze village excursion.',
     createdAt: '2026-10-06 02:15 PM',
     status: 'Responded'
+  }
+];
+
+export const INITIAL_FEEDBACKS: PostStayFeedback[] = [
+  {
+    id: 'fb-1',
+    bookingRef: 'TH-AM-7489',
+    guestName: 'Elias Bekele',
+    guestEmail: 'elias.b@gmail.com',
+    guestCountry: 'Addis Ababa, Ethiopia',
+    roomName: 'Deluxe King Lake View',
+    stayMonthYear: 'October 2026',
+    ratingOverall: 5,
+    ratings: {
+      cleanliness: 5,
+      hospitality: 5,
+      diningFood: 5,
+      lakeTourSafari: 5,
+      wifiComfort: 4,
+      valueForMoney: 5
+    },
+    title: 'Breathtaking Great Rift Valley views & warm Ethiopian hospitality',
+    comments: 'Our 3-night stay at Tourist Hotel Arba Minch exceeded all expectations! The view of Lake Chamo and Abaya from the balcony at sunrise is magical. The room was pristine, bed very comfortable, and the free airport shuttle picked us up seamlessly from AMH. The restaurant prepared the best fried Lake Chamo tilapia with fresh rosemary we have ever tasted. We will definitely return!',
+    favoriteHighlight: 'Lake Chamo Crocodile Market Boat Trip & Garden Buna Ceremony',
+    staffCompliment: 'Dawit at reception was remarkably kind and guide Abebe made our crocodile boat tour unforgettable.',
+    wouldRecommend: true,
+    travelType: 'couple',
+    verifiedStay: true,
+    status: 'Published',
+    managementResponse: {
+      responderName: 'General Manager · Tourist Hotel Arba Minch',
+      responseText: 'Dear Elias, thank you so much for your kind words! We are delighted that you enjoyed the panoramic lake sunrise, our chef’s tilapia, and Dawit’s warm welcome. We look forward to hosting you again on your next Rift Valley getaway!',
+      responseDate: '2026-10-06'
+    },
+    createdAt: '2026-10-05'
+  },
+  {
+    id: 'fb-2',
+    bookingRef: 'TH-AM-6812',
+    guestName: 'Dr. Hannah Meyer',
+    guestEmail: 'hannah.meyer@wildlife-berlin.de',
+    guestCountry: 'Berlin, Germany',
+    roomName: 'Executive Garden Suite',
+    stayMonthYear: 'September 2026',
+    ratingOverall: 5,
+    ratings: {
+      cleanliness: 5,
+      hospitality: 5,
+      diningFood: 4,
+      lakeTourSafari: 5,
+      wifiComfort: 4,
+      valueForMoney: 5
+    },
+    title: 'Peaceful garden sanctuary & ideal base for Nechisar wildlife',
+    comments: 'As an ecologist visiting the Rift Valley, Tourist Hotel proved to be the best base in Arba Minch. Reliable standby electricity and hot water after dusty safari days. The front desk efficiently arranged our morning Nechisar plains excursion and the Dorze village weaving tour. The evening traditional coffee ceremony in the garden was authentic and relaxing.',
+    favoriteHighlight: 'Nechisar National Park Plains Gazelle Excursion',
+    staffCompliment: 'The travel coordinator and tour drivers were punctual and knowledgeable about wildlife.',
+    wouldRecommend: true,
+    travelType: 'solo',
+    verifiedStay: true,
+    status: 'Published',
+    managementResponse: {
+      responderName: 'Operations Director · Tourist Hotel Arba Minch',
+      responseText: 'Thank you Dr. Meyer for choosing Tourist Hotel during your ecological research expedition. We are proud to support environmental travelers exploring Nechisar and Dorze traditions.',
+      responseDate: '2026-09-28'
+    },
+    createdAt: '2026-09-27'
+  },
+  {
+    id: 'fb-3',
+    bookingRef: 'TH-AM-5530',
+    guestName: 'Kidist & Samuel Tadesse',
+    guestEmail: 'kidist.tadesse@yahoo.com',
+    guestCountry: 'Hawassa, Ethiopia',
+    roomName: 'Family Villa Suite',
+    stayMonthYear: 'August 2026',
+    ratingOverall: 5,
+    ratings: {
+      cleanliness: 5,
+      hospitality: 5,
+      diningFood: 5,
+      lakeTourSafari: 4,
+      wifiComfort: 5,
+      valueForMoney: 5
+    },
+    title: 'Wonderful family vacation with kids · Safe, green and serene',
+    comments: 'Traveling with two young kids can be demanding, but Tourist Hotel staff made everything effortless. The family suite is spacious with connected beds and immaculate bathrooms. The kids loved playing in the enclosed garden lawns while we enjoyed freshly brewed buna coffee. Breakfast buffet had great variety including fresh tropical fruit and local honey.',
+    favoriteHighlight: 'Enclosed safe garden terraces & Forty Springs day trip',
+    staffCompliment: 'Housekeeping team kept our suite spotless daily with fresh linens.',
+    wouldRecommend: true,
+    travelType: 'family',
+    verifiedStay: true,
+    status: 'Published',
+    createdAt: '2026-08-19'
+  },
+  {
+    id: 'fb-4',
+    bookingRef: 'TH-AM-4419',
+    guestName: 'Marcus Thorne',
+    guestEmail: 'marcus.t@safariexplore.uk',
+    guestCountry: 'London, United Kingdom',
+    roomName: 'Standard Double Room',
+    stayMonthYear: 'July 2026',
+    ratingOverall: 4,
+    ratings: {
+      cleanliness: 4,
+      hospitality: 5,
+      diningFood: 4,
+      lakeTourSafari: 5,
+      wifiComfort: 4,
+      valueForMoney: 5
+    },
+    title: 'Superb value, fast boat booking and authentic atmosphere',
+    comments: 'Great honest hotel with character. Excellent value for money compared to overpriced resorts nearby. The priority boat pass for Lake Chamo was well worth it—we were on the lake at 7:30 AM before the heat and had close views of huge Nile crocodiles and pods of hippos. Wi-Fi worked decently in the lobby and terrace.',
+    favoriteHighlight: 'Early morning Lake Chamo boat safari',
+    staffCompliment: 'Captain Tariku on the boat and reception team.',
+    wouldRecommend: true,
+    travelType: 'safari_group',
+    verifiedStay: true,
+    status: 'Published',
+    createdAt: '2026-07-22'
   }
 ];
 

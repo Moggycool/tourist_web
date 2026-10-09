@@ -13,6 +13,11 @@ export const TRANSLATIONS = {
     nav_currency: 'Currency',
     nav_lang: 'Language',
     nav_admin: 'Admin CMS',
+    nav_my_booking: 'My Booking',
+    nav_compare_rooms: 'Compare Rooms',
+    nav_policies_faq: 'Policies & FAQ',
+    nav_reviews: 'Guest Reviews',
+    nav_feedback: 'Post-Stay Feedback',
 
     // Hero Section
     hero_badge: 'Welcome to Arba Minch · Southern Ethiopia',
@@ -123,10 +128,6 @@ export const TRANSLATIONS = {
     footer_contact: 'Contact & Inquiries',
     footer_staff: 'Staff & Management',
 
-    // New additions
-    nav_my_booking: 'My Booking',
-    nav_compare_rooms: 'Compare Rooms',
-    nav_policies_faq: 'Policies & FAQs',
     announcement_badge: 'Season Offer',
     announcement_text: '🌿 Rift Valley & Safari Special: Get 15% OFF direct bookings with code ARBA2026 + Free Airport Shuttle!',
     hero_rooms_count: 'Rooms',
@@ -154,6 +155,8 @@ export const TRANSLATIONS = {
     nav_my_booking: 'የያዝኩት ክፍል',
     nav_compare_rooms: 'ክፍሎችን ያነጻጽሩ',
     nav_policies_faq: 'ህጎች እና ተደጋጋሚ ጥያቄዎች',
+    nav_reviews: 'የእንግዶች አስተያየት',
+    nav_feedback: 'የእንግዶች ግብረ-መልስ',
 
     // Hero Section
     hero_badge: 'ወደ አርባ ምንጭ ቱሪስት ሆቴል እንኳን በደህና መጡ',

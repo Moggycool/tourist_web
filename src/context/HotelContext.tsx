@@ -15,7 +15,8 @@ import {
   PromoCode,
   GuestInquiry,
   HotelPolicyItem,
-  FAQItem
+  FAQItem,
+  PostStayFeedback
 } from '../types';
 import {
   INITIAL_HOTEL_INFO,
@@ -30,7 +31,8 @@ import {
   INITIAL_PROMO_CODES,
   INITIAL_POLICIES,
   INITIAL_FAQS,
-  INITIAL_INQUIRIES
+  INITIAL_INQUIRIES,
+  INITIAL_FEEDBACKS
 } from '../data/hotelData';
 import { TRANSLATIONS } from '../data/translations';
 
@@ -81,6 +83,12 @@ interface HotelContextType {
   addInquiry: (inquiry: Omit<GuestInquiry, 'id' | 'createdAt' | 'status'>) => void;
   updateInquiryStatus: (id: string, status: GuestInquiry['status']) => void;
 
+  feedbacks: PostStayFeedback[];
+  addFeedback: (fb: Omit<PostStayFeedback, 'id' | 'createdAt' | 'status'>) => { success: boolean; message: string; discountCode?: string };
+  updateFeedbackStatus: (id: string, status: PostStayFeedback['status']) => void;
+  respondToFeedback: (id: string, responseText: string, responderName?: string) => void;
+  deleteFeedback: (id: string) => void;
+
   conferenceHalls: ConferenceHall[];
 
   bookings: RoomBooking[];
@@ -107,6 +115,11 @@ interface HotelContextType {
 
   isCompareOpen: boolean;
   setIsCompareOpen: (open: boolean) => void;
+
+  isFeedbackModalOpen: boolean;
+  setIsFeedbackModalOpen: (open: boolean) => void;
+  prefilledFeedbackBooking: Partial<RoomBooking> | null;
+  openFeedbackModal: (booking?: Partial<RoomBooking>) => void;
 
   isAdminOpen: boolean;
   setIsAdminOpen: (open: boolean) => void;
@@ -283,6 +296,15 @@ export const HotelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   });
 
+  const [feedbacks, setFeedbacks] = useState<PostStayFeedback[]>(() => {
+    try {
+      const saved = localStorage.getItem(`${STORAGE_KEY}_feedbacks`);
+      return saved ? JSON.parse(saved) : INITIAL_FEEDBACKS;
+    } catch {
+      return INITIAL_FEEDBACKS;
+    }
+  });
+
   const [searchCriteria, setSearchCriteria] = useState<BookingSearchCriteria>({
     checkIn: '2026-10-12',
     checkOut: '2026-10-15',
@@ -295,6 +317,17 @@ export const HotelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const [isGuestPortalOpen, setIsGuestPortalOpen] = useState<boolean>(false);
   const [isCompareOpen, setIsCompareOpen] = useState<boolean>(false);
+  const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState<boolean>(false);
+  const [prefilledFeedbackBooking, setPrefilledFeedbackBooking] = useState<Partial<RoomBooking> | null>(null);
+
+  const openFeedbackModal = (booking?: Partial<RoomBooking>) => {
+    if (booking) {
+      setPrefilledFeedbackBooking(booking);
+    } else {
+      setPrefilledFeedbackBooking(null);
+    }
+    setIsFeedbackModalOpen(true);
+  };
 
   useEffect(() => {
     try {
@@ -311,6 +344,14 @@ export const HotelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       console.warn('Storage error', e);
     }
   }, [inquiries]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(`${STORAGE_KEY}_feedbacks`, JSON.stringify(feedbacks));
+    } catch (e) {
+      console.warn('Storage error', e);
+    }
+  }, [feedbacks]);
 
   const togglePromoCodeActive = (code: string) => {
     setPromoCodes(prev =>
@@ -347,6 +388,68 @@ export const HotelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const updateInquiryStatus = (id: string, status: GuestInquiry['status']) => {
     setInquiries(prev => prev.map(inq => (inq.id === id ? { ...inq, status } : inq)));
+  };
+
+  const addFeedback = (fb: Omit<PostStayFeedback, 'id' | 'createdAt' | 'status'>) => {
+    const isVerified = bookings.some(
+      b => b.bookingRef.toUpperCase() === fb.bookingRef.trim().toUpperCase()
+    ) || fb.verifiedStay;
+
+    const newFeedback: PostStayFeedback = {
+      ...fb,
+      id: `fb-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
+      verifiedStay: isVerified,
+      status: 'Published',
+      createdAt: new Date().toISOString().split('T')[0]
+    };
+
+    setFeedbacks(prev => [newFeedback, ...prev]);
+
+    // Send reception alert of new feedback
+    addNotification({
+      bookingRef: newFeedback.bookingRef,
+      type: 'whatsapp_reception',
+      recipient: `Guest Relations (${hotelInfo.phonePrimary})`,
+      title: `⭐ New Guest Satisfaction Review (${newFeedback.ratingOverall}/5 Stars)`,
+      message: `${newFeedback.guestName} reviewed ${newFeedback.roomName}: "${newFeedback.title}" (Recommend: ${newFeedback.wouldRecommend ? 'Yes' : 'No'})`,
+      status: 'Delivered'
+    });
+
+    return {
+      success: true,
+      discountCode: 'RETURNING15',
+      message: 'Thank you for your valuable feedback! Use promotional code RETURNING15 for 15% off your next stay in Arba Minch.'
+    };
+  };
+
+  const updateFeedbackStatus = (id: string, status: PostStayFeedback['status']) => {
+    setFeedbacks(prev => prev.map(f => (f.id === id ? { ...f, status } : f)));
+  };
+
+  const respondToFeedback = (
+    id: string,
+    responseText: string,
+    responderName: string = 'General Manager · Tourist Hotel Arba Minch'
+  ) => {
+    const today = new Date().toISOString().split('T')[0];
+    setFeedbacks(prev =>
+      prev.map(f =>
+        f.id === id
+          ? {
+              ...f,
+              managementResponse: {
+                responderName,
+                responseText,
+                responseDate: today
+              }
+            }
+          : f
+      )
+    );
+  };
+
+  const deleteFeedback = (id: string) => {
+    setFeedbacks(prev => prev.filter(f => f.id !== id));
   };
 
   const getBookingByRef = (bookingRef: string, phoneOrEmail?: string): RoomBooking | undefined => {
@@ -818,6 +921,11 @@ export const HotelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         inquiries,
         addInquiry,
         updateInquiryStatus,
+        feedbacks,
+        addFeedback,
+        updateFeedbackStatus,
+        respondToFeedback,
+        deleteFeedback,
         conferenceHalls,
         bookings,
         addBooking,
@@ -838,6 +946,10 @@ export const HotelProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         setIsGuestPortalOpen,
         isCompareOpen,
         setIsCompareOpen,
+        isFeedbackModalOpen,
+        setIsFeedbackModalOpen,
+        prefilledFeedbackBooking,
+        openFeedbackModal,
         isAdminOpen,
         setIsAdminOpen,
         isAdminAuthenticated,

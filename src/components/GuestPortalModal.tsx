@@ -15,7 +15,10 @@ import {
   ShieldAlert,
   Car,
   Coffee,
-  HelpCircle
+  HelpCircle,
+  Star,
+  Sparkles,
+  Award
 } from 'lucide-react';
 import { useHotel } from '../context/HotelContext';
 import { RoomBooking } from '../types';
@@ -33,6 +36,8 @@ export const GuestPortalModal: React.FC<GuestPortalModalProps> = ({ isOpen, onCl
     formatPrice,
     hotelInfo,
     bookings,
+    feedbacks,
+    openFeedbackModal,
     t
   } = useHotel();
 
@@ -337,6 +342,59 @@ export const GuestPortalModal: React.FC<GuestPortalModalProps> = ({ isOpen, onCl
                   </div>
                 )}
               </div>
+
+              {/* Post-Stay Guest Satisfaction Feedback Card */}
+              {(() => {
+                const existingFeedback = feedbacks.find(
+                  f => f.bookingRef.toUpperCase() === activeBooking.bookingRef.toUpperCase()
+                );
+                return (
+                  <div className="p-4 bg-linear-to-r from-amber-50 via-stone-50 to-amber-50/60 border border-amber-300/80 rounded-2xl space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2 text-stone-900 font-bold">
+                        <Star className="w-4 h-4 fill-amber-500 text-amber-500" />
+                        <span>Post-Stay Guest Satisfaction & 15% Return Voucher</span>
+                      </div>
+                      {existingFeedback ? (
+                        <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold border border-emerald-300">
+                          ✓ Review Submitted ({existingFeedback.ratingOverall}/5 Stars)
+                        </span>
+                      ) : (
+                        <span className="px-2 py-0.5 rounded-full bg-amber-200/70 text-amber-900 text-[10px] font-bold">
+                          Reward Available
+                        </span>
+                      )}
+                    </div>
+
+                    {existingFeedback ? (
+                      <div className="text-stone-600 text-[11px] space-y-1.5">
+                        <p>
+                          Thank you for reviewing your stay in the {existingFeedback.roomName}! You awarded us {existingFeedback.ratingOverall} out of 5 stars with headline: "{existingFeedback.title}".
+                        </p>
+                        <p className="font-semibold text-amber-900">
+                          Your return stay promo discount code: <span className="font-mono font-bold bg-white px-2 py-0.5 rounded border border-amber-300">RETURNING15</span> (15% Off).
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <p className="text-stone-600 text-[11px] leading-relaxed max-w-md">
+                          Have you enjoyed your stay in Arba Minch? Tell us how our team, lake excursions, and dining did. All feedback submissions receive a 15% return stay discount code!
+                        </p>
+                        <button
+                          onClick={() => {
+                            onClose();
+                            openFeedbackModal(activeBooking);
+                          }}
+                          className="px-4 py-2 bg-amber-700 hover:bg-amber-800 active:bg-amber-900 text-white rounded-xl font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer shrink-0"
+                        >
+                          <Star className="w-3.5 h-3.5 fill-amber-300 text-amber-300" />
+                          <span>Rate Stay & Claim 15%</span>
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
 
               {/* Action Buttons: Print Voucher / Cancel Booking */}
               <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-stone-200">

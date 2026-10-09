@@ -13,6 +13,8 @@ import { AboutSection } from './components/AboutSection';
 import { ReservationModal } from './components/ReservationModal';
 import { RoomCompareModal } from './components/RoomCompareModal';
 import { GuestPortalModal } from './components/GuestPortalModal';
+import { FeedbackModal } from './components/FeedbackModal';
+import { ReviewsSection } from './components/ReviewsSection';
 import { AdminPortal } from './components/AdminPortal';
 import { Footer } from './components/Footer';
 import { Room, TourPackage } from './types';
@@ -25,6 +27,9 @@ const HotelMainContent: React.FC = () => {
     setIsGuestPortalOpen,
     isCompareOpen,
     setIsCompareOpen,
+    isFeedbackModalOpen,
+    setIsFeedbackModalOpen,
+    prefilledFeedbackBooking,
     selectedRoomForBooking,
     setSelectedRoomForBooking,
     selectedRoomForDetail,
@@ -85,15 +90,18 @@ const HotelMainContent: React.FC = () => {
         {/* 4. Arba Minch Safaris & Excursions */}
         <ToursSection onBookTour={handleBookTour} />
 
-        {/* 5. Recent Events & Media Gallery (Photos and Small Videos) */}
+        {/* 5. Post-Stay Guest Satisfaction & Reviews */}
+        <ReviewsSection />
+
+        {/* 6. Recent Events & Media Gallery (Photos and Small Videos) */}
         <EventsSection
           onSelectEvent={(evt) => setSelectedEventForMedia(evt)}
         />
 
-        {/* 6. Conferences & Meeting Halls */}
+        {/* 7. Conferences & Meeting Halls */}
         <ConferenceSection />
 
-        {/* 7. About Tourist Hotel & Arba Minch */}
+        {/* 8. About Tourist Hotel & Arba Minch */}
         <AboutSection />
       </main>
 
@@ -151,6 +159,13 @@ const HotelMainContent: React.FC = () => {
       <GuestPortalModal
         isOpen={isGuestPortalOpen}
         onClose={() => setIsGuestPortalOpen(false)}
+      />
+
+      {/* Post-Stay Guest Satisfaction Review Modal */}
+      <FeedbackModal
+        isOpen={isFeedbackModalOpen}
+        onClose={() => setIsFeedbackModalOpen(false)}
+        prefilledBooking={prefilledFeedbackBooking}
       />
 
       {/* System Admin Content Management Portal */}
